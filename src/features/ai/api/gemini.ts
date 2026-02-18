@@ -204,7 +204,11 @@ export async function streamGeminiResponse(
           const chunk: GeminiStreamChunk = JSON.parse(data)
 
           if (chunk.error) {
-            throw new Error(chunk.error.message)
+            throw new Error(
+              typeof chunk.error.message === 'string'
+                ? chunk.error.message
+                : 'Gemini API returned an error'
+            )
           }
 
           const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text

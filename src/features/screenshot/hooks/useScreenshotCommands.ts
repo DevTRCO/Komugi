@@ -1,6 +1,23 @@
-import { commands } from '@/lib/tauri-bindings'
+import { commands, type ScreenshotError } from '@/lib/tauri-bindings'
 import { useScreenshotStore } from '../stores/screenshotStore'
 import { logger } from '@/lib/logger'
+
+function getScreenshotErrorMessage(error: ScreenshotError): string {
+  switch (error.type) {
+    case 'PermissionDenied':
+      return error.message
+    case 'NoMonitorFound':
+      return 'No monitor found'
+    case 'CaptureFailed':
+      return error.message
+    case 'EncodingFailed':
+      return error.message
+    case 'ImageTooLarge':
+      return `Screenshot too large (max ${Math.round(error.max_bytes / 1024 / 1024)}MB)`
+    case 'NotSupported':
+      return error.message
+  }
+}
 
 /**
  * Triggers a fullscreen screenshot capture.
@@ -12,24 +29,24 @@ export async function captureFullscreen(): Promise<void> {
 
   setIsCapturing(true)
 
-  const result = await commands.captureFullscreen()
+  try {
+    const result = await commands.captureFullscreen()
 
-  if (result.status === 'ok') {
-    setCurrentScreenshot({
-      imageBase64: result.data.image_base64,
-      width: result.data.width,
-      height: result.data.height,
-      capturedAt: result.data.captured_at,
-    })
-  } else {
-    const errorMessage =
-      typeof result.error === 'string'
-        ? result.error
-        : 'message' in result.error
-          ? result.error.message
-          : 'Screenshot capture failed'
-    logger.error('Fullscreen capture failed', { error: result.error })
-    setLastError(errorMessage)
+    if (result.status === 'ok') {
+      setCurrentScreenshot({
+        imageBase64: result.data.image_base64,
+        width: result.data.width,
+        height: result.data.height,
+        capturedAt: result.data.captured_at,
+      })
+    } else {
+      const errorMessage = getScreenshotErrorMessage(result.error)
+      logger.error('Fullscreen capture failed', { error: result.error })
+      setLastError(errorMessage)
+    }
+  } catch (error) {
+    logger.error('Fullscreen capture threw', { error })
+    setLastError('Screenshot capture failed unexpectedly')
   }
 }
 
@@ -41,13 +58,18 @@ export async function startAreaSelection(): Promise<void> {
 
   setIsCapturing(true)
 
-  const result = await commands.startAreaSelection()
+  try {
+    const result = await commands.startAreaSelection()
 
-  if (result.status === 'error') {
-    logger.error('Area selection failed to start', { error: result.error })
+    if (result.status === 'error') {
+      logger.error('Area selection failed to start', { error: result.error })
+      setLastError('Failed to start area selection')
+    }
+    // isCapturing stays true until the selection is completed or cancelled
+  } catch (error) {
+    logger.error('Area selection threw', { error })
     setLastError('Failed to start area selection')
   }
-  // isCapturing stays true until the selection is completed or cancelled
 }
 
 /**

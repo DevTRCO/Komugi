@@ -81,6 +81,12 @@ export function GeneralPane() {
   }
 
   const handleDifficultyChange = (value: string) => {
+    const validLevels: DifficultyLevel[] = [
+      'beginner',
+      'intermediate',
+      'advanced',
+    ]
+    if (!validLevels.includes(value as DifficultyLevel)) return
     const { setDifficulty } = useSettingsStore.getState()
     setDifficulty(value as DifficultyLevel)
   }
