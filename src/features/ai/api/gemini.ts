@@ -26,6 +26,15 @@ interface GeminiStreamChunk {
   error?: { message: string }
 }
 
+export interface StreamResult {
+  /** The accumulated response text */
+  text: string
+  /** Whether the stream completed normally (finishReason === 'STOP') */
+  complete: boolean
+  /** The finish reason from the last chunk, if received */
+  finishReason: string | null
+}
+
 function getApiKey(): string {
   const key = import.meta.env.VITE_GEMINI_API_KEY as string | undefined
   if (!key) {
@@ -109,7 +118,7 @@ export async function streamGeminiResponse(
   difficulty: DifficultyLevel,
   onChunk: (text: string) => void,
   signal?: AbortSignal
-): Promise<string> {
+): Promise<StreamResult> {
   const apiKey = getApiKey()
   const contents = buildContents(
     screenshotBase64,
@@ -184,6 +193,8 @@ export async function streamGeminiResponse(
     const decoder = new TextDecoder()
     let fullText = ''
     let buffer = ''
+    let finishReason: string | null = null
+    let skippedChunks = 0
 
     while (true) {
       const { done, value } = await reader.read()
@@ -211,10 +222,16 @@ export async function streamGeminiResponse(
             )
           }
 
-          const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text
+          const candidate = chunk.candidates?.[0]
+          const text = candidate?.content?.parts?.[0]?.text
           if (text) {
             fullText += text
             onChunk(text)
+          }
+
+          const reason = candidate?.finishReason
+          if (reason) {
+            finishReason = reason
           }
         } catch (parseError) {
           // Skip unparseable SSE lines — happens with partial JSON
@@ -222,6 +239,7 @@ export async function streamGeminiResponse(
             parseError instanceof SyntaxError ||
             (parseError instanceof Error && parseError.message.includes('JSON'))
           ) {
+            skippedChunks++
             continue
           }
           throw parseError
@@ -229,7 +247,19 @@ export async function streamGeminiResponse(
       }
     }
 
-    return fullText
+    if (skippedChunks > 0) {
+      logger.debug('SSE parser skipped unparseable chunks', { skippedChunks })
+    }
+
+    const complete = finishReason === 'STOP'
+    if (!complete && fullText.length > 0) {
+      logger.warn('Stream ended without STOP finish reason', {
+        finishReason,
+        textLength: fullText.length,
+      })
+    }
+
+    return { text: fullText, complete, finishReason }
   } finally {
     clearTimeout(timeoutId)
   }

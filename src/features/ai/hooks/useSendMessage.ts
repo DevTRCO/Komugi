@@ -42,7 +42,7 @@ export function useSendMessage() {
       const freshSession = useChatStore.getState().currentSession
       if (!freshSession) return
 
-      await streamGeminiResponse(
+      const result = await streamGeminiResponse(
         freshSession.screenshotBase64,
         freshSession.messages,
         message,
@@ -57,6 +57,16 @@ export function useSendMessage() {
       // Only finalize if not aborted
       if (!controller.signal.aborted) {
         finalizeStreaming()
+
+        if (!result.complete) {
+          const warning =
+            result.finishReason === 'SAFETY'
+              ? 'Response was filtered for safety reasons and may be incomplete.'
+              : result.finishReason === 'MAX_TOKENS'
+                ? 'Response reached the maximum length and may be incomplete.'
+                : 'Response may be incomplete due to a connection issue.'
+          setLastError(warning)
+        }
       }
     } catch (error) {
       if (controller.signal.aborted) {

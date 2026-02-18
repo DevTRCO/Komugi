@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import type { ChatSession } from '@/features/chat/stores/chatStore'
+import { validateArray, isSessionSummary } from '@/lib/store-validation'
 
 /** Lightweight session summary for the sidebar list (no screenshot data) */
 export interface SessionSummary {
@@ -57,7 +58,22 @@ export const useHistoryStore = create<HistoryState>()(
 
         clearHistory: () => set({ sessions: [] }, undefined, 'clearHistory'),
       }),
-      { name: 'komugi-history' }
+      {
+        name: 'komugi-history',
+        merge: (persisted: unknown, current: HistoryState): HistoryState => {
+          if (typeof persisted !== 'object' || persisted === null)
+            return current
+          const p = persisted as Record<string, unknown>
+          return {
+            ...current,
+            sessions: validateArray(
+              p.sessions,
+              isSessionSummary,
+              'history.sessions'
+            ),
+          }
+        },
+      }
     ),
     { name: 'history-store' }
   )
