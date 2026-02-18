@@ -1,12 +1,8 @@
 import { useEffect, useRef } from 'react'
+import { useChatStore } from '../stores/chatStore'
 import { useHistoryStore } from '@/features/history'
 import { logger } from '@/lib/logger'
 import type { ChatSession } from '../stores/chatStore'
-
-// Access store outside of React to avoid React Compiler hook rules
-const chatStoreApi = await import('../stores/chatStore').then(
-  m => m.useChatStore
-)
 
 /**
  * Watches chat store and saves completed sessions to history
@@ -18,10 +14,9 @@ export function useSaveSessionToHistory() {
   const prevSessionRef = useRef<ChatSession | null>(null)
 
   useEffect(() => {
-    // Initialize with current state
-    prevSessionRef.current = chatStoreApi.getState().currentSession
+    prevSessionRef.current = useChatStore.getState().currentSession
 
-    const unsubscribe = chatStoreApi.subscribe(state => {
+    const unsubscribe = useChatStore.subscribe(state => {
       const prevSession = prevSessionRef.current
       const currentSession = state.currentSession
 

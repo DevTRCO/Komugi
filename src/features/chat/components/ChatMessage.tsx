@@ -12,9 +12,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user'
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(message.content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    try {
+      await navigator.clipboard.writeText(message.content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Clipboard API can fail if window doesn't have focus
+    }
   }
 
   return (

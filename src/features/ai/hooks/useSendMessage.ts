@@ -60,9 +60,8 @@ export function useSendMessage() {
       }
     } catch (error) {
       if (controller.signal.aborted) {
-        // User cancelled — clear streaming state
-        const { setIsGenerating: setGen } = useChatStore.getState()
-        setGen(false)
+        // User cancelled — clear streaming state and partial content
+        useChatStore.setState({ isGenerating: false, streamingContent: '' })
         return
       }
 
@@ -76,8 +75,7 @@ export function useSendMessage() {
   const abort = useCallback(() => {
     abortRef.current?.abort()
     abortRef.current = null
-    const { setIsGenerating } = useChatStore.getState()
-    setIsGenerating(false)
+    useChatStore.setState({ isGenerating: false, streamingContent: '' })
   }, [])
 
   return { send, abort }

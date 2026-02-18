@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 
 export interface ChatMessage {
   id: string
@@ -66,7 +67,7 @@ export const useChatStore = create<ChatState>()(
           screenshotHeight: screenshot.height,
           messages: [],
           createdAt: Date.now(),
-          difficulty: 'intermediate',
+          difficulty: useSettingsStore.getState().difficulty,
         }
         set(
           { currentSession: session, lastError: null, streamingContent: '' },

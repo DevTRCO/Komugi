@@ -84,6 +84,24 @@ function buildContents(
   return contents
 }
 
+function getUserFacingError(status: number): string {
+  switch (status) {
+    case 400:
+      return 'Invalid request. The message or screenshot may be too large.'
+    case 401:
+    case 403:
+      return 'API key is invalid or expired. Check your VITE_GEMINI_API_KEY.'
+    case 429:
+      return 'Rate limit exceeded. Please wait a moment and try again.'
+    case 500:
+    case 502:
+    case 503:
+      return 'Gemini API is temporarily unavailable. Please try again later.'
+    default:
+      return `AI service error (${status}). Please try again.`
+  }
+}
+
 export async function streamGeminiResponse(
   screenshotBase64: string,
   messages: readonly ChatMessage[],
@@ -153,7 +171,9 @@ export async function streamGeminiResponse(
         status: response.status,
         body: errorBody,
       })
-      throw new Error(`Gemini API error (${response.status}): ${errorBody}`)
+      // Show user-friendly message, not raw API response
+      const userMessage = getUserFacingError(response.status)
+      throw new Error(userMessage)
     }
 
     const reader = response.body?.getReader()
