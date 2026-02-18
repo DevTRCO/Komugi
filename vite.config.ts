@@ -30,6 +30,7 @@ export default defineConfig(async () => ({
       input: {
         main: resolve(__dirname, 'index.html'),
         'quick-pane': resolve(__dirname, 'quick-pane.html'),
+        'screenshot-selection': resolve(__dirname, 'screenshot-selection.html'),
       },
     },
   },

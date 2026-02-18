@@ -8,6 +8,12 @@ use std::sync::LazyLock;
 /// Default shortcut for the quick pane
 pub const DEFAULT_QUICK_PANE_SHORTCUT: &str = "CommandOrControl+Shift+.";
 
+/// Default shortcut for fullscreen screenshot capture
+pub const DEFAULT_FULLSCREEN_SHORTCUT: &str = "CommandOrControl+Shift+1";
+
+/// Default shortcut for area selection screenshot
+pub const DEFAULT_AREA_SHORTCUT: &str = "CommandOrControl+Shift+2";
+
 /// Maximum size for recovery data files (10MB)
 pub const MAX_RECOVERY_DATA_BYTES: u32 = 10_485_760;
 
@@ -33,14 +39,22 @@ pub struct AppPreferences {
     /// User's preferred language (e.g., "en", "es", "de")
     /// If None, uses system locale detection
     pub language: Option<String>,
+    /// Global shortcut for fullscreen screenshot (e.g., "CommandOrControl+Shift+1")
+    /// If None, uses the default shortcut
+    pub fullscreen_screenshot_shortcut: Option<String>,
+    /// Global shortcut for area selection screenshot (e.g., "CommandOrControl+Shift+2")
+    /// If None, uses the default shortcut
+    pub area_screenshot_shortcut: Option<String>,
 }
 
 impl Default for AppPreferences {
     fn default() -> Self {
         Self {
             theme: "system".to_string(),
-            quick_pane_shortcut: None, // None means use default
-            language: None,            // None means use system locale
+            quick_pane_shortcut: None,              // None means use default
+            language: None,                          // None means use system locale
+            fullscreen_screenshot_shortcut: None,    // None means use default
+            area_screenshot_shortcut: None,          // None means use default
         }
     }
 }

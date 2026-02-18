@@ -35,6 +35,10 @@ tauri-plugin-global-shortcut = "2"
 log = "0.4"
 regex = "1"
 
+# Screenshot capture (base64 is cross-platform, xcap needs platform libs)
+base64 = "0.22"
+image = "0.25"
+
 # Type-safe Tauri command bindings
 specta = { version = "=2.0.0-rc.22", features = ["derive", "serde_json"] }
 tauri-specta = { version = "=2.0.0-rc.21", features = ["typescript"] }
@@ -46,8 +50,10 @@ tauri-plugin-updater = "2"
 tauri-plugin-window-state = "2"
 
 # macOS-only: NSPanel for native panel behavior (fullscreen overlay, click-outside dismiss)
+# xcap: Screen capture (macOS has no extra system-lib requirements; Linux needs GTK3-dev)
 [target.'cfg(target_os = "macos")'.dependencies]
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
+xcap = "0.8"
 
 # Optimize for smaller binary size in release builds
 [profile.release]

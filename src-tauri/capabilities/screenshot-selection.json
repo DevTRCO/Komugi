@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "screenshot-selection-capability",
+  "description": "Capability for the screenshot area selection overlay window",
+  "windows": ["screenshot-selection"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-close",
+    "core:window:allow-set-focus",
+    "core:event:default",
+    "core:event:allow-emit"
+  ]
+}

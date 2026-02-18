@@ -1,7 +1,7 @@
 use tauri_specta::{collect_commands, Builder};
 
 pub fn generate_bindings() -> Builder<tauri::Wry> {
-    use crate::commands::{notifications, preferences, quick_pane, recovery};
+    use crate::commands::{notifications, preferences, quick_pane, recovery, screenshot};
 
     Builder::<tauri::Wry>::new().commands(collect_commands![
         preferences::greet,
@@ -16,6 +16,12 @@ pub fn generate_bindings() -> Builder<tauri::Wry> {
         quick_pane::toggle_quick_pane,
         quick_pane::get_default_quick_pane_shortcut,
         quick_pane::update_quick_pane_shortcut,
+        screenshot::capture_fullscreen,
+        screenshot::check_screen_recording_permission,
+        screenshot::open_screen_recording_settings,
+        screenshot::start_area_selection,
+        screenshot::complete_area_selection,
+        screenshot::cancel_area_selection,
     ])
 }
 

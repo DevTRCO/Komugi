@@ -129,6 +129,17 @@ pub fn run() {
                 // Non-fatal: app can still run without quick pane
             }
 
+            // Register screenshot capture shortcuts
+            #[cfg(desktop)]
+            {
+                if let Err(e) =
+                    commands::screenshot::register_screenshot_shortcuts(app.handle())
+                {
+                    log::error!("Failed to register screenshot shortcuts: {e}");
+                    // Non-fatal: app can still run without screenshot shortcuts
+                }
+            }
+
             // NOTE: Application menu is built from JavaScript for i18n support
             // See src/lib/menu.ts for the menu implementation
 
