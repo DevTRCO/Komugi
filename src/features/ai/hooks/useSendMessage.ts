@@ -25,7 +25,7 @@ export function useSendMessage() {
     }
 
     if (currentSession.messages.length >= 30) {
-      setLastError('Maximum messages per session reached (15 exchanges)')
+      setLastError('Maximum messages per session reached')
       return
     }
 

@@ -34,6 +34,10 @@ export function useScreenshotToChat() {
         width: screenshot.width,
         height: screenshot.height,
       })
+
+      // Free the duplicate base64 from screenshot store (CAUT-1)
+      const { clearScreenshot } = useScreenshotStore.getState()
+      clearScreenshot()
     })
 
     return unsubscribe

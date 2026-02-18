@@ -37,7 +37,6 @@ interface ChatState {
     height: number
   }) => void
   addUserMessage: (content: string) => void
-  addAssistantMessage: (content: string) => void
   appendStreamingContent: (chunk: string) => void
   finalizeStreaming: () => void
   setIsGenerating: (generating: boolean) => void
@@ -97,28 +96,6 @@ export const useChatStore = create<ChatState>()(
           },
           undefined,
           'addUserMessage'
-        )
-      },
-
-      addAssistantMessage: content => {
-        const session = get().currentSession
-        if (!session) return
-
-        const message: ChatMessage = {
-          id: generateId(),
-          role: 'assistant',
-          content,
-          timestamp: Date.now(),
-        }
-        set(
-          {
-            currentSession: {
-              ...session,
-              messages: [...session.messages, message],
-            },
-          },
-          undefined,
-          'addAssistantMessage'
         )
       },
 
