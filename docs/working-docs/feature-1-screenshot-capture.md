@@ -15,10 +15,10 @@ Nach erfolgreichem Capture: Event emittieren fuer Feature 2 (Mini-Chat).
 
 ### Shortcuts (Phase 1)
 
-| Modus | Shortcut | Begruendung |
-|-------|----------|-------------|
+| Modus              | Shortcut      | Begruendung                            |
+| ------------------ | ------------- | -------------------------------------- |
 | Fullscreen Capture | `Cmd+Shift+1` | Memorable, kollidiert nicht mit System |
-| Area Selection | `Cmd+Shift+2` | Paired mit Fullscreen-Shortcut |
+| Area Selection     | `Cmd+Shift+2` | Paired mit Fullscreen-Shortcut         |
 
 > `tauri-plugin-global-shortcut` unterstuetzt keine einzelnen Modifier-Keys.
 > Double-Tap Option (⌥⌥) als optionales Enhancement spaeter.
@@ -70,10 +70,12 @@ Global Shortcut (Rust, Cmd+Shift+1/2)
 #### `src-tauri/src/commands/screenshot.rs`
 
 **Types:**
+
 - `ScreenshotResult` — `{ image_base64, width, height, captured_at }`
 - `ScreenshotError` — Tagged Enum: `PermissionDenied`, `NoMonitorFound`, `CaptureFailed`, `EncodingFailed`, `ImageTooLarge`
 
 **Commands (6 total):**
+
 1. `capture_fullscreen(app)` → `Result<ScreenshotResult, ScreenshotError>`
 2. `check_screen_recording_permission()` → `bool`
 3. `open_screen_recording_settings(app)` → `Result<(), String>`
@@ -82,6 +84,7 @@ Global Shortcut (Rust, Cmd+Shift+1/2)
 6. `cancel_area_selection(app)` → `()`
 
 **Helpers (nicht exposed):**
+
 - `ensure_screen_recording_permission()` — Check + Request
 - `capture_monitor_at_cursor(app)` → `(Monitor, RgbaImage)`
 - `encode_image_to_base64(image)` → `ScreenshotResult`
@@ -91,38 +94,38 @@ Global Shortcut (Rust, Cmd+Shift+1/2)
 
 ### Rust (Modifikationen)
 
-| Datei | Aenderung |
-|-------|-----------|
-| `Cargo.toml` | `xcap`, `base64` Dependencies hinzufuegen |
-| `commands/mod.rs` | `pub mod screenshot;` hinzufuegen |
-| `bindings.rs` | 6 Commands in `collect_commands!` registrieren |
-| `types.rs` | Screenshot-Shortcut Defaults + `AppPreferences` erweitern |
-| `lib.rs` | `register_screenshot_shortcuts()` in `setup()` aufrufen |
+| Datei             | Aenderung                                                 |
+| ----------------- | --------------------------------------------------------- |
+| `Cargo.toml`      | `xcap`, `base64` Dependencies hinzufuegen                 |
+| `commands/mod.rs` | `pub mod screenshot;` hinzufuegen                         |
+| `bindings.rs`     | 6 Commands in `collect_commands!` registrieren            |
+| `types.rs`        | Screenshot-Shortcut Defaults + `AppPreferences` erweitern |
+| `lib.rs`          | `register_screenshot_shortcuts()` in `setup()` aufrufen   |
 
 ### Frontend (Neue Dateien)
 
-| Datei | Zweck |
-|-------|-------|
-| `src/features/screenshot/stores/screenshotStore.ts` | Zustand Store (devtools, selector-syntax) |
-| `src/features/screenshot/hooks/useScreenshotListener.ts` | `listen("screenshot-captured")` → Store Update |
-| `src/features/screenshot/hooks/useScreenshotCommands.ts` | Typed command wrappers fuer UI |
-| `src/features/screenshot/index.ts` | Barrel Export |
-| `screenshot-selection.html` | Entry Point fuer Overlay Window |
-| `src/screenshot-selection-main.tsx` | React Mount fuer Overlay |
-| `src/features/screenshot/components/ScreenshotSelectionApp.tsx` | Overlay UI (Crosshair + Rubber Band) |
+| Datei                                                           | Zweck                                          |
+| --------------------------------------------------------------- | ---------------------------------------------- |
+| `src/features/screenshot/stores/screenshotStore.ts`             | Zustand Store (devtools, selector-syntax)      |
+| `src/features/screenshot/hooks/useScreenshotListener.ts`        | `listen("screenshot-captured")` → Store Update |
+| `src/features/screenshot/hooks/useScreenshotCommands.ts`        | Typed command wrappers fuer UI                 |
+| `src/features/screenshot/index.ts`                              | Barrel Export                                  |
+| `screenshot-selection.html`                                     | Entry Point fuer Overlay Window                |
+| `src/screenshot-selection-main.tsx`                             | React Mount fuer Overlay                       |
+| `src/features/screenshot/components/ScreenshotSelectionApp.tsx` | Overlay UI (Crosshair + Rubber Band)           |
 
 ### Frontend (Modifikationen)
 
-| Datei | Aenderung |
-|-------|-----------|
-| `vite.config.ts` | `screenshot-selection` Entry in rollupOptions.input |
-| `src/hooks/useMainWindowEventListeners.ts` | `useScreenshotListener()` mounten |
-| `src/lib/tauri-bindings.ts` | Re-exports fuer neue Types |
+| Datei                                      | Aenderung                                           |
+| ------------------------------------------ | --------------------------------------------------- |
+| `vite.config.ts`                           | `screenshot-selection` Entry in rollupOptions.input |
+| `src/hooks/useMainWindowEventListeners.ts` | `useScreenshotListener()` mounten                   |
+| `src/lib/tauri-bindings.ts`                | Re-exports fuer neue Types                          |
 
 ### Config (Neue Dateien)
 
-| Datei | Zweck |
-|-------|-------|
+| Datei                                              | Zweck                            |
+| -------------------------------------------------- | -------------------------------- |
 | `src-tauri/capabilities/screenshot-selection.json` | Capabilities fuer Overlay Window |
 
 ### Locales
@@ -132,6 +135,7 @@ Global Shortcut (Rust, Cmd+Shift+1/2)
 ## Implementierungsreihenfolge
 
 ### Phase 1: Fullscreen Capture (MVP)
+
 1. `Cargo.toml` — Dependencies hinzufuegen
 2. `screenshot.rs` — Types, Permission-Check, `capture_fullscreen`, `encode_image_to_base64`
 3. `screenshot.rs` — Shortcut Registration (`register_screenshot_shortcuts`)
@@ -145,6 +149,7 @@ Global Shortcut (Rust, Cmd+Shift+1/2)
 11. Bindings regenerieren + Compile Test
 
 ### Phase 2: Area Selection
+
 1. `screenshot.rs` — `start_area_selection`, `complete_area_selection`, `cancel_area_selection`
 2. `screenshot.rs` — `PENDING_CAPTURE` Mutex, Overlay Window Management
 3. `screenshot-selection.html` + Entry Point
@@ -153,6 +158,7 @@ Global Shortcut (Rust, Cmd+Shift+1/2)
 6. `capabilities/screenshot-selection.json`
 
 ### Phase 3: Polish
+
 1. i18n Strings
 2. Permission Dialog UX
 3. Error Handling in UI (Toast bei Fehler)
@@ -160,14 +166,14 @@ Global Shortcut (Rust, Cmd+Shift+1/2)
 
 ## Risiken & Mitigations
 
-| Risiko | Mitigation |
-|--------|------------|
-| `xcap` baut nicht auf allen Platforms | macOS-First, andere spaeter |
-| Scale Factor / DPI bei Area Selection | Physical Pixels von xcap, Logical fuer Tauri Window — sorgfaeltig konvertieren |
-| Overlay im Screenshot sichtbar | Capture VOR Overlay-Oeffnung |
-| Grosse Screenshots (5K, Multi-Monitor) | MAX_SCREENSHOT_BYTES Limit, PNG Compression, nur ein Monitor |
-| macOS Permission einmalig | Check vor jedem Capture, Custom Dialog bei Verweigerung |
-| PENDING_CAPTURE haelt grosses Bild | Sofort nach Crop droppen, Auto-Clear Timeout |
+| Risiko                                 | Mitigation                                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| `xcap` baut nicht auf allen Platforms  | macOS-First, andere spaeter                                                    |
+| Scale Factor / DPI bei Area Selection  | Physical Pixels von xcap, Logical fuer Tauri Window — sorgfaeltig konvertieren |
+| Overlay im Screenshot sichtbar         | Capture VOR Overlay-Oeffnung                                                   |
+| Grosse Screenshots (5K, Multi-Monitor) | MAX_SCREENSHOT_BYTES Limit, PNG Compression, nur ein Monitor                   |
+| macOS Permission einmalig              | Check vor jedem Capture, Custom Dialog bei Verweigerung                        |
+| PENDING_CAPTURE haelt grosses Bild     | Sofort nach Crop droppen, Auto-Clear Timeout                                   |
 
 ## Fortschritt
 

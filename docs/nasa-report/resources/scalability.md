@@ -45,9 +45,10 @@ Screenshot Capture → Base64 Encode → Store → Send to Gemini → Stream Res
 ```
 
 For each step:
-- Current latency: ___ms
-- Latency at 100 sessions: ___ms
-- Breaking point: ___ concurrent operations
+
+- Current latency: \_\_\_ms
+- Latency at 100 sessions: \_\_\_ms
+- Breaking point: \_\_\_ concurrent operations
 
 ### 4.5 Cost Scaling
 
@@ -58,19 +59,19 @@ For each step:
 
 ## Scalability Tiers (Komugi-specific)
 
-| Tier | Sessions | Messages | DB Size | Expected Issues |
-|------|----------|----------|---------|-----------------|
-| Light | <100 | <1K | <50MB | None expected |
-| Regular | 100-1K | 1K-10K | 50-500MB | Query perf on search |
-| Heavy | 1K-10K | 10K-100K | 500MB-5GB | SQLite limits, storage |
-| Power | 10K+ | 100K+ | 5GB+ | Need cleanup/archival |
+| Tier    | Sessions | Messages | DB Size   | Expected Issues        |
+| ------- | -------- | -------- | --------- | ---------------------- |
+| Light   | <100     | <1K      | <50MB     | None expected          |
+| Regular | 100-1K   | 1K-10K   | 50-500MB  | Query perf on search   |
+| Heavy   | 1K-10K   | 10K-100K | 500MB-5GB | SQLite limits, storage |
+| Power   | 10K+     | 100K+    | 5GB+      | Need cleanup/archival  |
 
 ## Severity Classification
 
-| Finding | Grade |
-|---------|-------|
-| Unbounded screenshot storage | WARNING |
-| No pagination on history list | WARNING |
+| Finding                               | Grade   |
+| ------------------------------------- | ------- |
+| Unbounded screenshot storage          | WARNING |
+| No pagination on history list         | WARNING |
 | Synchronous AI generation blocking UI | WARNING |
-| No timeout on Gemini API call | WARNING |
-| Missing cleanup for old sessions | CAUTION |
+| No timeout on Gemini API call         | WARNING |
+| Missing cleanup for old sessions      | CAUTION |

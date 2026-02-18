@@ -12,7 +12,7 @@ The invisible backbone that either enables or destroys the product.
 - All queries use appropriate indexes
 - No N+1 query patterns (especially in list/collection views)
 - Queries are bounded (LIMIT clauses, pagination)
-- No SELECT * — only needed columns are fetched
+- No SELECT \* — only needed columns are fetched
 - Joins are efficient (indexed foreign keys)
 - Database connections are properly managed (open/close lifecycle)
 - Migrations are backward-compatible
@@ -55,11 +55,11 @@ The invisible backbone that either enables or destroys the product.
 
 ## Severity Classification
 
-| Finding | Grade |
-|---------|-------|
-| SQL injection vector in search | ABORT |
-| Missing input validation on Tauri command | CRITICAL |
-| N+1 query on session list | WARNING |
-| Missing index on frequently queried column | WARNING |
-| PII in application logs | CRITICAL |
-| API key in committed code | ABORT |
+| Finding                                    | Grade    |
+| ------------------------------------------ | -------- |
+| SQL injection vector in search             | ABORT    |
+| Missing input validation on Tauri command  | CRITICAL |
+| N+1 query on session list                  | WARNING  |
+| Missing index on frequently queried column | WARNING  |
+| PII in application logs                    | CRITICAL |
+| API key in committed code                  | ABORT    |

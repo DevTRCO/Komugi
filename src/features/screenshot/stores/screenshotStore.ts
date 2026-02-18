@@ -31,7 +31,11 @@ export const useScreenshotStore = create<ScreenshotState>()(
 
       setCurrentScreenshot: screenshot =>
         set(
-          { currentScreenshot: screenshot, isCapturing: false, lastError: null },
+          {
+            currentScreenshot: screenshot,
+            isCapturing: false,
+            lastError: null,
+          },
           undefined,
           'setCurrentScreenshot'
         ),
@@ -43,7 +47,11 @@ export const useScreenshotStore = create<ScreenshotState>()(
         set({ isCapturing: capturing }, undefined, 'setIsCapturing'),
 
       setLastError: error =>
-        set({ lastError: error, isCapturing: false }, undefined, 'setLastError'),
+        set(
+          { lastError: error, isCapturing: false },
+          undefined,
+          'setLastError'
+        ),
     }),
     { name: 'screenshot-store' }
   )

@@ -9,6 +9,7 @@ to trust. Code that is hard to trust does not belong in production.
 ## NASA's Power of Ten Rules (Adapted for TypeScript)
 
 ### Rule 1: Simple Control Flow
+
 - No goto equivalents (no labeled break/continue)
 - No recursion without provable termination bound
 - Maximum nesting depth: 2 levels
@@ -16,12 +17,14 @@ to trust. Code that is hard to trust does not belong in production.
 - No complex ternary chains (max 1 ternary, no nesting)
 
 ### Rule 2: Fixed Upper Bounds on Loops
+
 - Every while loop has a maximum iteration guard
 - Every recursive function has a depth limit
 - Every for loop has a clearly bounded range
 - `.map()`, `.filter()`, `.reduce()` preferred over manual loops
 
 ### Rule 3: No Dynamic Memory After Initialization
+
 - No runtime `new` in hot paths (pre-allocate where possible)
 - No growing arrays without bounds in request handlers
 - Stream processing for large datasets (not buffer-then-process)
@@ -29,6 +32,7 @@ to trust. Code that is hard to trust does not belong in production.
 - Avoid creating objects in tight loops
 
 ### Rule 4: Functions Fit on One Screen (~60 lines max)
+
 - No function exceeds 60 lines
 - Each function does exactly one thing
 - Function name describes what it does (no `handleStuff`, `processData`)
@@ -36,6 +40,7 @@ to trust. Code that is hard to trust does not belong in production.
 - No function has more than 3 responsibilities
 
 ### Rule 5: Assertions for Invariants
+
 - Critical assumptions have runtime assertions
 - Type narrowing uses runtime checks, not type assertions
 - "Impossible" states throw with descriptive messages
@@ -43,6 +48,7 @@ to trust. Code that is hard to trust does not belong in production.
 - Null/undefined checks at trust boundaries
 
 ### Rule 6: Minimal Variable Scope
+
 - Variables declared at point of first use
 - No module-level mutable state
 - No `let` where `const` suffices
@@ -50,6 +56,7 @@ to trust. Code that is hard to trust does not belong in production.
 - No variable reuse (each name used for one purpose)
 
 ### Rule 7: All Return Values Checked
+
 - No ignored Promise (every async call awaited or explicitly handled)
 - No ignored function return values (especially error indicators)
 - `void` functions explicitly typed as void
@@ -57,6 +64,7 @@ to trust. Code that is hard to trust does not belong in production.
 - No fire-and-forget side effects in request handlers
 
 ### Rule 8: Minimal Preprocessor Use
+
 - No barrel files that obscure imports
 - Import paths are explicit (no magic re-exports)
 - No circular dependencies
@@ -64,6 +72,7 @@ to trust. Code that is hard to trust does not belong in production.
 - No `eval()`, `new Function()`, or string-based code execution
 
 ### Rule 9: Reference Safety
+
 - No mutation of function parameters
 - No shared mutable state between modules
 - Immutable data structures only (`readonly`, `as const`, spread)
@@ -71,6 +80,7 @@ to trust. Code that is hard to trust does not belong in production.
 - React state updates use immutable patterns
 
 ### Rule 10: Compile with All Warnings
+
 - TypeScript strict mode: `strict: true` in tsconfig
 - No `any` types (zero tolerance)
 - No `@ts-ignore` or `@ts-expect-error` without linked issue
@@ -81,6 +91,7 @@ to trust. Code that is hard to trust does not belong in production.
 ## Clean Code Assessment
 
 ### Separation of Concerns
+
 - Rust commands are thin (validation + delegation)
 - Business logic lives in dedicated modules (not in components)
 - Database access is encapsulated in history commands
@@ -89,12 +100,14 @@ to trust. Code that is hard to trust does not belong in production.
 - Error handling is consistent (shared patterns, not ad-hoc)
 
 ### Dependency Health
+
 - No circular dependencies between modules
 - Dependencies flow one direction: components → hooks → stores → services → Rust
 - No business logic depends on UI framework (portable)
 - External service calls (Gemini) are behind abstractions (swap-friendly)
 
 ### Naming Quality
+
 - Types describe shape, not usage (`ChatMessage` not `MessageData`)
 - Functions describe action (`captureScreenshot` not `doStuff`)
 - Boolean variables/props use is/has/should prefix
@@ -103,6 +116,7 @@ to trust. Code that is hard to trust does not belong in production.
 - No abbreviations except universally understood (e.g., `id`, `url`)
 
 ### Production Readiness
+
 - All environment variables validated at startup
 - Graceful degradation for optional features
 - Structured logging with appropriate levels
@@ -111,13 +125,13 @@ to trust. Code that is hard to trust does not belong in production.
 
 ## Severity Classification
 
-| Finding | Grade |
-|---------|-------|
-| `any` type in AI processing | CRITICAL |
-| 200-line function in screenshot flow | WARNING |
-| Circular dependency between modules | WARNING |
-| Business logic in React component | CAUTION |
-| Missing exhaustive check on discriminated union | WARNING |
-| Mutable state shared across async boundary | CRITICAL |
-| No runtime validation at trust boundary | WARNING |
-| Dead code in production bundle | CAUTION |
+| Finding                                         | Grade    |
+| ----------------------------------------------- | -------- |
+| `any` type in AI processing                     | CRITICAL |
+| 200-line function in screenshot flow            | WARNING  |
+| Circular dependency between modules             | WARNING  |
+| Business logic in React component               | CAUTION  |
+| Missing exhaustive check on discriminated union | WARNING  |
+| Mutable state shared across async boundary      | CRITICAL |
+| No runtime validation at trust boundary         | WARNING  |
+| Dead code in production bundle                  | CAUTION  |

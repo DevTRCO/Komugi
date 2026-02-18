@@ -43,12 +43,12 @@ and competitive exposure. Technical bugs are symptoms — business impact is the
 
 ## Komugi-Specific Risks
 
-| Finding | Trust Impact | Legal Risk | Timeline |
-|---------|-------------|------------|----------|
-| Screenshot data leak | Catastrophic | Critical | Immediate |
-| API key exposure | High | Medium | Days |
-| Prompt injection via screenshot | Medium | Low | Weeks |
-| Unbounded API costs | Low | Low | Months |
+| Finding                         | Trust Impact | Legal Risk | Timeline  |
+| ------------------------------- | ------------ | ---------- | --------- |
+| Screenshot data leak            | Catastrophic | Critical   | Immediate |
+| API key exposure                | High         | Medium     | Days      |
+| Prompt injection via screenshot | Medium       | Low        | Weeks     |
+| Unbounded API costs             | Low          | Low        | Months    |
 
 ## Counterfactual Template
 

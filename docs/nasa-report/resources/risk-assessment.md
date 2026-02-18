@@ -62,11 +62,11 @@ For each path, verify:
 
 ## Severity Classification
 
-| Finding | Grade |
-|---------|-------|
-| Unhandled promise rejection in AI flow | CRITICAL |
-| Missing error boundary around AI generation | WARNING |
-| Generic error message on form submission | CAUTION |
-| Missing timeout on non-critical API call | CAUTION |
-| Swallowed error in logging utility | WARNING |
-| Race condition in screenshot capture | CRITICAL |
+| Finding                                     | Grade    |
+| ------------------------------------------- | -------- |
+| Unhandled promise rejection in AI flow      | CRITICAL |
+| Missing error boundary around AI generation | WARNING  |
+| Generic error message on form submission    | CAUTION  |
+| Missing timeout on non-critical API call    | CAUTION  |
+| Swallowed error in logging utility          | WARNING  |
+| Race condition in screenshot capture        | CRITICAL |

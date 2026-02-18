@@ -23,26 +23,29 @@ export function ScreenshotSelectionApp() {
     await commands.cancelAreaSelection()
   }, [])
 
-  const handleComplete = useCallback(async (rect: SelectionRect) => {
-    const x = Math.min(rect.startX, rect.endX)
-    const y = Math.min(rect.startY, rect.endY)
-    const width = Math.abs(rect.endX - rect.startX)
-    const height = Math.abs(rect.endY - rect.startY)
+  const handleComplete = useCallback(
+    async (rect: SelectionRect) => {
+      const x = Math.min(rect.startX, rect.endX)
+      const y = Math.min(rect.startY, rect.endY)
+      const width = Math.abs(rect.endX - rect.startX)
+      const height = Math.abs(rect.endY - rect.startY)
 
-    if (width < 10 || height < 10) {
-      await handleCancel()
-      return
-    }
+      if (width < 10 || height < 10) {
+        await handleCancel()
+        return
+      }
 
-    // Scale to physical pixels (devicePixelRatio)
-    const scale = window.devicePixelRatio
-    await commands.completeAreaSelection(
-      Math.round(x * scale),
-      Math.round(y * scale),
-      Math.round(width * scale),
-      Math.round(height * scale)
-    )
-  }, [handleCancel])
+      // Scale to physical pixels (devicePixelRatio)
+      const scale = window.devicePixelRatio
+      await commands.completeAreaSelection(
+        Math.round(x * scale),
+        Math.round(y * scale),
+        Math.round(width * scale),
+        Math.round(height * scale)
+      )
+    },
+    [handleCancel]
+  )
 
   // Escape key cancels
   useEffect(() => {
