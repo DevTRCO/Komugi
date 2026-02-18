@@ -51,10 +51,10 @@ impl Default for AppPreferences {
     fn default() -> Self {
         Self {
             theme: "system".to_string(),
-            quick_pane_shortcut: None,              // None means use default
-            language: None,                          // None means use system locale
-            fullscreen_screenshot_shortcut: None,    // None means use default
-            area_screenshot_shortcut: None,          // None means use default
+            quick_pane_shortcut: None,            // None means use default
+            language: None,                       // None means use system locale
+            fullscreen_screenshot_shortcut: None, // None means use default
+            area_screenshot_shortcut: None,       // None means use default
         }
     }
 }

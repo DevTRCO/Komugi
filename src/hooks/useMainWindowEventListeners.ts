@@ -3,6 +3,8 @@ import { listen } from '@tauri-apps/api/event'
 import { useCommandContext } from './use-command-context'
 import { useKeyboardShortcuts } from './use-keyboard-shortcuts'
 import { useScreenshotListener } from '@/features/screenshot'
+import { useScreenshotToChat } from '@/features/chat/hooks/useScreenshotToChat'
+import { useSaveSessionToHistory } from '@/features/chat/hooks/useSaveSessionToHistory'
 import { useUIStore } from '@/store/ui-store'
 import { logger } from '@/lib/logger'
 
@@ -12,6 +14,7 @@ import { logger } from '@/lib/logger'
  * This hook composes specialized hooks for different event types:
  * - useKeyboardShortcuts: Global keyboard shortcuts (Cmd+, Cmd+1, Cmd+2)
  * - useScreenshotListener: Screenshot captured events from Rust backend
+ * - useScreenshotToChat: Starts chat session when screenshot is taken
  * - Quick pane submit listener: Cross-window communication from quick pane
  */
 export function useMainWindowEventListeners() {
@@ -19,6 +22,8 @@ export function useMainWindowEventListeners() {
 
   useKeyboardShortcuts(commandContext)
   useScreenshotListener()
+  useScreenshotToChat()
+  useSaveSessionToHistory()
 
   // Listen for quick pane submissions (cross-window event)
   useEffect(() => {

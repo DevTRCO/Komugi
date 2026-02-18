@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app",
+  "productName": "Komugi",
   "version": "0.1.0",
-  "identifier": "com.tauri-app.app",
+  "identifier": "com.komugi.app",
   "build": {
     "removeUnusedCommands": true,
     "beforeDevCommand": "npm run dev",
@@ -13,7 +13,7 @@
   "app": {
     "windows": [
       {
-        "title": "tauri-app",
+        "title": "Komugi",
         "width": 1000,
         "height": 700,
         "minWidth": 1000,
@@ -30,7 +30,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' tauri: ipc: http://ipc.localhost"
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' tauri: ipc: http://ipc.localhost https://generativelanguage.googleapis.com"
     },
     "macOSPrivateApi": true
   },
@@ -46,9 +46,9 @@
       "icons/icon.ico"
     ],
     "publisher": "Your Name",
-    "category": "DeveloperTool",
-    "shortDescription": "A Tauri React template application",
-    "longDescription": "A modern Tauri React template with comprehensive boilerplate code, TypeScript, Tailwind CSS, and shadcn/ui components.",
+    "category": "Education",
+    "shortDescription": "AI-powered screenshot tutor",
+    "longDescription": "Komugi is a context-aware AI tutor. Take a screenshot, ask a question, and get Socratic explanations that help you understand.",
     "copyright": "Copyright © 2025 Your Name. All rights reserved.",
     "macOS": {
       "frameworks": [],

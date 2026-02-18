@@ -132,9 +132,7 @@ pub fn run() {
             // Register screenshot capture shortcuts
             #[cfg(desktop)]
             {
-                if let Err(e) =
-                    commands::screenshot::register_screenshot_shortcuts(app.handle())
-                {
+                if let Err(e) = commands::screenshot::register_screenshot_shortcuts(app.handle()) {
                     log::error!("Failed to register screenshot shortcuts: {e}");
                     // Non-fatal: app can still run without screenshot shortcuts
                 }

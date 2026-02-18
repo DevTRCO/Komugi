@@ -1,0 +1,76 @@
+import { useState, useRef, useEffect } from 'react'
+import { Send, Square } from 'lucide-react'
+import { useChatStore } from '../stores/chatStore'
+
+interface ChatInputProps {
+  onSend: (message: string) => void
+  onAbort: () => void
+}
+
+export function ChatInput({ onSend, onAbort }: ChatInputProps) {
+  const [text, setText] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const isGenerating = useChatStore(state => state.isGenerating)
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    textarea.style.height = 'auto'
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`
+  }, [text])
+
+  // Auto-focus on mount
+  useEffect(() => {
+    textareaRef.current?.focus()
+  }, [])
+
+  const handleSubmit = () => {
+    const trimmed = text.trim()
+    if (!trimmed || isGenerating) return
+    onSend(trimmed)
+    setText('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit()
+    }
+  }
+
+  return (
+    <div className="border-t border-border bg-background p-3">
+      <div className="mx-auto flex max-w-2xl items-end gap-2">
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask about what you see..."
+          rows={1}
+          disabled={isGenerating}
+          className="min-h-[36px] flex-1 resize-none rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none disabled:opacity-50"
+        />
+        {isGenerating ? (
+          <button
+            onClick={onAbort}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-destructive text-destructive-foreground transition-colors hover:bg-destructive/90"
+            aria-label="Stop generating"
+          >
+            <Square size={16} />
+          </button>
+        ) : (
+          <button
+            onClick={handleSubmit}
+            disabled={!text.trim()}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            aria-label="Send message"
+          >
+            <Send size={16} />
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}

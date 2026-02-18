@@ -1,24 +1,25 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Switch } from '@/components/ui/switch'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ShortcutPicker } from '../ShortcutPicker'
 import { SettingsField, SettingsSection } from '../shared/SettingsComponents'
 import { usePreferences, useSavePreferences } from '@/services/preferences'
 import { commands } from '@/lib/tauri-bindings'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { logger } from '@/lib/logger'
+import type { DifficultyLevel } from '@/features/chat/stores/chatStore'
 
 export function GeneralPane() {
   const { t } = useTranslation()
-  // Example local state - these are NOT persisted to disk
-  // To add persistent preferences:
-  // 1. Add the field to AppPreferences in both Rust and TypeScript
-  // 2. Use usePreferencesManager() and updatePreferences()
-  const [exampleText, setExampleText] = useState('Example value')
-  const [exampleToggle, setExampleToggle] = useState(true)
+  const difficulty = useSettingsStore(state => state.difficulty)
 
   // Load preferences for keyboard shortcuts
   const { data: preferences } = usePreferences()
@@ -30,18 +31,16 @@ export function GeneralPane() {
     queryFn: async () => {
       return await commands.getDefaultQuickPaneShortcut()
     },
-    staleTime: Infinity, // Never refetch - this is a constant
+    staleTime: Infinity,
   })
 
   const handleShortcutChange = async (newShortcut: string | null) => {
     if (!preferences) return
 
-    // Capture old shortcut for rollback if save fails
     const oldShortcut = preferences.quick_pane_shortcut
 
     logger.info('Updating quick pane shortcut', { oldShortcut, newShortcut })
 
-    // First, try to register the new shortcut
     const result = await commands.updateQuickPaneShortcut(newShortcut)
 
     if (result.status === 'error') {
@@ -52,14 +51,12 @@ export function GeneralPane() {
       return
     }
 
-    // If registration succeeded, try to save the preference
     try {
       await savePreferences.mutateAsync({
         ...preferences,
         quick_pane_shortcut: newShortcut,
       })
     } catch {
-      // Save failed - roll back the backend registration
       logger.warn('Save failed, rolling back shortcut registration', {
         oldShortcut,
         newShortcut,
@@ -79,14 +76,57 @@ export function GeneralPane() {
         toast.error(t('toast.error.shortcutRestoreFailed'), {
           description: t('toast.error.shortcutRestoreDescription'),
         })
-      } else {
-        logger.info('Successfully rolled back shortcut registration')
       }
     }
   }
 
+  const handleDifficultyChange = (value: string) => {
+    const { setDifficulty } = useSettingsStore.getState()
+    setDifficulty(value as DifficultyLevel)
+  }
+
   return (
     <div className="space-y-6">
+      <SettingsSection title={t('preferences.general.tutoring')}>
+        <SettingsField
+          label={t('preferences.general.difficulty')}
+          description={t('preferences.general.difficultyDescription')}
+        >
+          <Select value={difficulty} onValueChange={handleDifficultyChange}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="beginner">
+                <div className="flex items-center gap-2">
+                  <span>{t('preferences.general.difficulty.beginner')}</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="intermediate">
+                <div className="flex items-center gap-2">
+                  <span>
+                    {t('preferences.general.difficulty.intermediate')}
+                  </span>
+                </div>
+              </SelectItem>
+              <SelectItem value="advanced">
+                <div className="flex items-center gap-2">
+                  <span>{t('preferences.general.difficulty.advanced')}</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Label className="mt-1 block text-xs text-muted-foreground">
+            {difficulty === 'beginner' &&
+              t('preferences.general.difficulty.beginnerHint')}
+            {difficulty === 'intermediate' &&
+              t('preferences.general.difficulty.intermediateHint')}
+            {difficulty === 'advanced' &&
+              t('preferences.general.difficulty.advancedHint')}
+          </Label>
+        </SettingsField>
+      </SettingsSection>
+
       <SettingsSection title={t('preferences.general.keyboardShortcuts')}>
         <SettingsField
           label={t('preferences.general.quickPaneShortcut')}
@@ -94,40 +134,10 @@ export function GeneralPane() {
         >
           <ShortcutPicker
             value={preferences?.quick_pane_shortcut ?? null}
-            // Fallback matches DEFAULT_QUICK_PANE_SHORTCUT in src-tauri/src/lib.rs
             defaultValue={defaultShortcut ?? 'CommandOrControl+Shift+.'}
             onChange={handleShortcutChange}
             disabled={!preferences || savePreferences.isPending}
           />
-        </SettingsField>
-      </SettingsSection>
-
-      <SettingsSection title={t('preferences.general.exampleSettings')}>
-        <SettingsField
-          label={t('preferences.general.exampleText')}
-          description={t('preferences.general.exampleTextDescription')}
-        >
-          <Input
-            value={exampleText}
-            onChange={e => setExampleText(e.target.value)}
-            placeholder={t('preferences.general.exampleTextPlaceholder')}
-          />
-        </SettingsField>
-
-        <SettingsField
-          label={t('preferences.general.exampleToggle')}
-          description={t('preferences.general.exampleToggleDescription')}
-        >
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="example-toggle"
-              checked={exampleToggle}
-              onCheckedChange={setExampleToggle}
-            />
-            <Label htmlFor="example-toggle" className="text-sm">
-              {exampleToggle ? t('common.enabled') : t('common.disabled')}
-            </Label>
-          </div>
         </SettingsField>
       </SettingsSection>
     </div>

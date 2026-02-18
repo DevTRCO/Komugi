@@ -142,6 +142,67 @@ async updateQuickPaneShortcut(shortcut: string | null) : Promise<Result<null, st
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Captures a fullscreen screenshot of the monitor under the cursor.
+ */
+async captureFullscreen() : Promise<Result<ScreenshotResult, ScreenshotError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("capture_fullscreen") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Checks whether screen recording permission is currently granted.
+ */
+async checkScreenRecordingPermission() : Promise<Result<boolean, never>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("check_screen_recording_permission") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Opens the macOS Screen Recording settings pane.
+ */
+async openScreenRecordingSettings() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("open_screen_recording_settings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Starts area selection: captures the screen first, then opens the selection overlay.
+ */
+async startAreaSelection() : Promise<Result<null, ScreenshotError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("start_area_selection") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Completes area selection with the given region coordinates.
+ */
+async completeAreaSelection(x: number, y: number, width: number, height: number) : Promise<Result<ScreenshotResult, ScreenshotError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("complete_area_selection", { x, y, width, height }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Cancels the area selection and closes the overlay.
+ */
+async cancelAreaSelection() : Promise<null> {
+    return await TAURI_INVOKE("cancel_area_selection");
 }
 }
 
@@ -159,17 +220,27 @@ async updateQuickPaneShortcut(shortcut: string | null) : Promise<Result<null, st
  * Application preferences that persist to disk.
  * Only contains settings that should be saved between sessions.
  */
-export type AppPreferences = { theme: string; 
+export type AppPreferences = { theme: string;
 /**
  * Global shortcut for quick pane (e.g., "CommandOrControl+Shift+.")
  * If None, uses the default shortcut
  */
-quick_pane_shortcut: string | null; 
+quick_pane_shortcut: string | null;
 /**
  * User's preferred language (e.g., "en", "es", "de")
  * If None, uses system locale detection
  */
-language: string | null }
+language: string | null;
+/**
+ * Global shortcut for fullscreen screenshot
+ * If None, uses the default shortcut
+ */
+fullscreen_screenshot_shortcut: string | null;
+/**
+ * Global shortcut for area selection screenshot
+ * If None, uses the default shortcut
+ */
+area_screenshot_shortcut: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 /**
  * Error types for recovery operations (typed for frontend matching)
@@ -195,6 +266,24 @@ export type RecoveryError =
  * JSON serialization/deserialization error
  */
 { type: "ParseError"; message: string }
+/**
+ * Result of a successful screenshot capture operation.
+ */
+export type ScreenshotResult = {
+image_base64: string;
+width: number;
+height: number;
+captured_at: string }
+/**
+ * Typed errors for screenshot operations.
+ */
+export type ScreenshotError =
+{ type: "PermissionDenied"; message: string } |
+{ type: "NoMonitorFound" } |
+{ type: "CaptureFailed"; message: string } |
+{ type: "EncodingFailed"; message: string } |
+{ type: "ImageTooLarge"; max_bytes: number } |
+{ type: "NotSupported"; message: string }
 
 /** tauri-specta globals **/
 

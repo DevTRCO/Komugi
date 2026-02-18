@@ -22,7 +22,13 @@ export function usePreferences() {
         logger.warn('Failed to load preferences, using defaults', {
           error: result.error,
         })
-        return { theme: 'system', quick_pane_shortcut: null, language: null }
+        return {
+          theme: 'system',
+          quick_pane_shortcut: null,
+          language: null,
+          fullscreen_screenshot_shortcut: null,
+          area_screenshot_shortcut: null,
+        }
       }
 
       logger.info('Preferences loaded successfully', {

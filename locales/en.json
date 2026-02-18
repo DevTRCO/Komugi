@@ -1,5 +1,5 @@
 {
-  "app.name": "Tauri Template",
+  "app.name": "Komugi",
 
   "menu.about": "About {{appName}}",
   "menu.checkForUpdates": "Check for Updates...",
@@ -13,20 +13,24 @@
   "menu.toggleRightSidebar": "Toggle Right Sidebar",
 
   "preferences.title": "Preferences",
-  "preferences.description": "Customize your application preferences here.",
+  "preferences.description": "Customize your Komugi preferences.",
   "preferences.general": "General",
   "preferences.appearance": "Appearance",
   "preferences.advanced": "Advanced",
 
+  "preferences.general.tutoring": "Tutoring",
+  "preferences.general.difficulty": "Difficulty Level",
+  "preferences.general.difficultyDescription": "Controls how detailed and technical Komugi's explanations are",
+  "preferences.general.difficulty.beginner": "Beginner",
+  "preferences.general.difficulty.intermediate": "Intermediate",
+  "preferences.general.difficulty.advanced": "Advanced",
+  "preferences.general.difficulty.beginnerHint": "Simple language, analogies, step-by-step explanations",
+  "preferences.general.difficulty.intermediateHint": "Clear explanations with technical depth",
+  "preferences.general.difficulty.advancedHint": "Concise, technical, focused on nuances",
+
   "preferences.general.keyboardShortcuts": "Keyboard Shortcuts",
   "preferences.general.quickPaneShortcut": "Quick Pane Shortcut",
   "preferences.general.quickPaneShortcutDescription": "Global keyboard shortcut to toggle the quick pane from any application",
-  "preferences.general.exampleSettings": "Example Settings",
-  "preferences.general.exampleText": "Example Text Setting",
-  "preferences.general.exampleTextDescription": "This is an example text input setting (not persisted)",
-  "preferences.general.exampleTextPlaceholder": "Enter example text",
-  "preferences.general.exampleToggle": "Example Toggle Setting",
-  "preferences.general.exampleToggleDescription": "This is an example switch/toggle setting (not persisted)",
 
   "preferences.appearance.theme": "Theme",
   "preferences.appearance.colorTheme": "Color Theme",
@@ -39,14 +43,9 @@
   "preferences.appearance.languageDescription": "Choose your preferred display language",
   "preferences.appearance.language.system": "System Default",
 
-  "preferences.advanced.title": "Example Advanced Settings",
-  "preferences.advanced.toggle": "Example Advanced Toggle",
-  "preferences.advanced.toggleDescription": "This is an example advanced toggle setting (not persisted)",
-  "preferences.advanced.dropdown": "Example Dropdown Setting",
-  "preferences.advanced.dropdownDescription": "This is an example dropdown/select setting (not persisted)",
-  "preferences.advanced.option1": "Example Option 1",
-  "preferences.advanced.option2": "Example Option 2",
-  "preferences.advanced.option3": "Example Option 3",
+  "preferences.advanced.title": "Advanced",
+  "preferences.advanced.apiStatus": "API Configuration",
+  "preferences.advanced.apiStatusDescription": "Gemini API key is configured via VITE_GEMINI_API_KEY in your .env file",
 
   "common.enabled": "Enabled",
   "common.disabled": "Disabled",
@@ -88,7 +87,7 @@
   "commandPalette.placeholder": "Type a command or search...",
   "commandPalette.noResults": "No results found.",
 
-  "titlebar.default": "Tauri App",
+  "titlebar.default": "Komugi",
   "titlebar.showLeftSidebar": "Show Left Sidebar",
   "titlebar.hideLeftSidebar": "Hide Left Sidebar",
   "titlebar.showRightSidebar": "Show Right Sidebar",

@@ -5,10 +5,11 @@ import App from './App'
 // Tauri bindings are mocked globally in src/test/setup.ts
 
 describe('App', () => {
-  it('renders main window layout', () => {
+  it('renders main window layout with empty state', () => {
     render(<App />)
+    // Chat empty state shows "Take a screenshot to start"
     expect(
-      screen.getByRole('heading', { name: /hello world/i })
+      screen.getByRole('heading', { name: /take a screenshot to start/i })
     ).toBeInTheDocument()
   })
 
