@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Komugi",
   "version": "0.1.0",
-  "identifier": "com.komugi.app",
+  "identifier": "com.komugi.tutor",
   "build": {
     "removeUnusedCommands": true,
     "beforeDevCommand": "npm run dev",
@@ -26,7 +26,8 @@
         "alwaysOnTop": false,
         "transparent": false,
         "shadow": true,
-        "dragDropEnabled": true
+        "dragDropEnabled": true,
+        "visible": false
       }
     ],
     "security": {
@@ -61,12 +62,10 @@
   },
   "plugins": {
     "updater": {
-      "active": true,
-      "endpoints": [
-        "https://github.com/YOUR_USERNAME/YOUR_REPO/releases/latest/download/latest.json"
-      ],
-      "dialog": true,
-      "pubkey": "YOUR_UPDATER_PUBLIC_KEY_HERE"
+      "active": false,
+      "endpoints": [],
+      "dialog": false,
+      "pubkey": ""
     }
   }
 }

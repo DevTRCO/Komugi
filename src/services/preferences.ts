@@ -28,6 +28,7 @@ export function usePreferences() {
           language: null,
           fullscreen_screenshot_shortcut: null,
           area_screenshot_shortcut: null,
+          window_screenshot_shortcut: null,
         }
       }
 

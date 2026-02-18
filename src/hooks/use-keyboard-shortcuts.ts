@@ -9,6 +9,7 @@ import type { CommandContext } from '@/lib/commands/types'
  * - Cmd/Ctrl+, : Open preferences
  * - Cmd/Ctrl+1 : Toggle left sidebar
  * - Cmd/Ctrl+2 : Toggle right sidebar
+ * - Cmd/Ctrl+? : Show shortcut overlay
  */
 export function useKeyboardShortcuts(commandContext: CommandContext) {
   useEffect(() => {
@@ -32,6 +33,13 @@ export function useKeyboardShortcuts(commandContext: CommandContext) {
             const { rightSidebarVisible, setRightSidebarVisible } =
               useUIStore.getState()
             setRightSidebarVisible(!rightSidebarVisible)
+            break
+          }
+          case '?': {
+            e.preventDefault()
+            const { shortcutOverlayOpen, setShortcutOverlayOpen } =
+              useUIStore.getState()
+            setShortcutOverlayOpen(!shortcutOverlayOpen)
             break
           }
         }

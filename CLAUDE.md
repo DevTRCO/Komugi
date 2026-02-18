@@ -25,7 +25,7 @@ Ohne Screenshot keine Conversation. Sokratischer Ansatz: Erklaeren, nicht Loesun
 | Desktop          | Tauri 2.0 (Rust + WebView)                                           |
 | Frontend         | React 19, TypeScript, Tailwind CSS v4, Zustand v5, TanStack Query v5 |
 | UI               | shadcn/ui v4, Lucide React                                           |
-| AI Vision + Text | Google Gemini 2.5 Flash (Bilderkennung + Erklaerungen)               |
+| AI Vision + Text | Google Gemini 3 Flash (Bilderkennung + Erklaerungen)                 |
 | Lokale DB        | SQLite (Tauri Plugin) fuer Lern-History                              |
 | Quality          | ESLint, Prettier, ast-grep, knip, jscpd, clippy                      |
 

@@ -7,6 +7,7 @@ import { initializeLanguage } from './i18n/language-init'
 import { logger } from './lib/logger'
 import { cleanupOldFiles } from './lib/recovery'
 import { commands } from './lib/tauri-bindings'
+import { useHistoryStore } from './features/history'
 import './App.css'
 import { MainWindow } from './components/layout/MainWindow'
 import { ThemeProvider } from './components/ThemeProvider'
@@ -40,6 +41,9 @@ function App() {
     }
 
     initLanguageAndMenu()
+
+    // Load history sessions from SQLite
+    useHistoryStore.getState().loadSessions()
 
     // Clean up old recovery files on startup
     cleanupOldFiles().catch(error => {

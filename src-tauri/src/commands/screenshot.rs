@@ -15,9 +15,12 @@ use image::codecs::png::PngEncoder;
 use image::ImageEncoder;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 
-use crate::types::{DEFAULT_AREA_SHORTCUT, DEFAULT_FULLSCREEN_SHORTCUT};
+use crate::types::{
+    WindowBounds, DEFAULT_AREA_SHORTCUT, DEFAULT_FULLSCREEN_SHORTCUT,
+    DEFAULT_WINDOW_SELECT_SHORTCUT,
+};
 
 // ============================================================================
 // Constants
@@ -184,27 +187,59 @@ fn encode_image_to_base64(image: &image::RgbaImage) -> Result<ScreenshotResult, 
 // ============================================================================
 
 /// Captures the monitor under the current cursor position.
+/// Returns both the image and monitor geometry for consistent positioning.
+/// Falls back to the primary monitor if cursor-based lookup fails.
 #[cfg(target_os = "macos")]
-fn capture_monitor_at_cursor(app: &AppHandle) -> Result<image::RgbaImage, ScreenshotError> {
-    let cursor_pos = app
-        .cursor_position()
-        .map_err(|e| ScreenshotError::CaptureFailed {
-            message: format!("Failed to get cursor position: {e}"),
-        })?;
+fn capture_monitor_at_cursor(
+    app: &AppHandle,
+) -> Result<(image::RgbaImage, MonitorInfo), ScreenshotError> {
+    let monitor = match app.cursor_position() {
+        Ok(cursor_pos) => {
+            log::debug!("Cursor at ({}, {})", cursor_pos.x, cursor_pos.y);
+            xcap::Monitor::from_point(cursor_pos.x as i32, cursor_pos.y as i32)
+                .inspect_err(|e| {
+                    log::warn!("from_point failed ({e}), falling back to primary monitor");
+                })
+                .ok()
+        }
+        Err(e) => {
+            log::warn!("Failed to get cursor position ({e}), using primary monitor");
+            None
+        }
+    };
 
-    log::debug!("Cursor at ({}, {})", cursor_pos.x, cursor_pos.y);
+    let monitor = match monitor {
+        Some(m) => m,
+        None => {
+            let monitors = xcap::Monitor::all().map_err(|e| ScreenshotError::CaptureFailed {
+                message: format!("Failed to list monitors: {e}"),
+            })?;
+            monitors
+                .into_iter()
+                .next()
+                .ok_or(ScreenshotError::NoMonitorFound)?
+        }
+    };
 
-    let monitor =
-        xcap::Monitor::from_point(cursor_pos.x as i32, cursor_pos.y as i32).map_err(|e| {
-            ScreenshotError::CaptureFailed {
-                message: format!("No monitor at cursor position: {e}"),
-            }
-        })?;
+    let map_monitor_err = |e: xcap::XCapError| ScreenshotError::CaptureFailed {
+        message: format!("Failed to read monitor info: {e}"),
+    };
+
+    let info = MonitorInfo {
+        x: monitor.x().map_err(map_monitor_err)?,
+        y: monitor.y().map_err(map_monitor_err)?,
+        width: monitor.width().map_err(map_monitor_err)?,
+        height: monitor.height().map_err(map_monitor_err)?,
+        scale_factor: monitor.scale_factor().map_err(map_monitor_err)? as f64,
+    };
 
     log::debug!(
-        "Capturing monitor: {}x{}",
-        monitor.width(),
-        monitor.height()
+        "Capturing monitor: {}x{} at ({}, {}) scale={}",
+        info.width,
+        info.height,
+        info.x,
+        info.y,
+        info.scale_factor
     );
 
     let image = monitor
@@ -213,11 +248,13 @@ fn capture_monitor_at_cursor(app: &AppHandle) -> Result<image::RgbaImage, Screen
             message: format!("Screen capture failed: {e}"),
         })?;
 
-    Ok(image)
+    Ok((image, info))
 }
 
 #[cfg(not(target_os = "macos"))]
-fn capture_monitor_at_cursor(_app: &AppHandle) -> Result<image::RgbaImage, ScreenshotError> {
+fn capture_monitor_at_cursor(
+    _app: &AppHandle,
+) -> Result<(image::RgbaImage, MonitorInfo), ScreenshotError> {
     Err(ScreenshotError::NotSupported {
         message: "Screen capture is currently only supported on macOS".to_string(),
     })
@@ -227,20 +264,37 @@ fn capture_monitor_at_cursor(_app: &AppHandle) -> Result<image::RgbaImage, Scree
 // Pending Capture Storage (for area selection flow)
 // ============================================================================
 
-/// Holds the captured image while the user draws the selection rectangle.
-static PENDING_CAPTURE: Mutex<Option<image::RgbaImage>> = Mutex::new(None);
+/// Monitor geometry captured at the same instant as the screenshot.
+#[derive(Debug, Clone)]
+struct MonitorInfo {
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+    scale_factor: f64,
+}
 
-fn store_pending_capture(image: image::RgbaImage) -> Result<(), ScreenshotError> {
+/// Holds both the captured image and the monitor it came from.
+#[allow(dead_code)]
+struct PendingCapture {
+    image: image::RgbaImage,
+    monitor: MonitorInfo,
+}
+
+/// Holds the captured image while the user draws the selection rectangle.
+static PENDING_CAPTURE: Mutex<Option<PendingCapture>> = Mutex::new(None);
+
+fn store_pending_capture(capture: PendingCapture) -> Result<(), ScreenshotError> {
     let mut pending = PENDING_CAPTURE
         .lock()
         .map_err(|e| ScreenshotError::CaptureFailed {
             message: format!("Failed to lock pending capture: {e}"),
         })?;
-    *pending = Some(image);
+    *pending = Some(capture);
     Ok(())
 }
 
-fn take_pending_capture() -> Result<image::RgbaImage, ScreenshotError> {
+fn take_pending_capture() -> Result<PendingCapture, ScreenshotError> {
     let mut pending = PENDING_CAPTURE
         .lock()
         .map_err(|e| ScreenshotError::CaptureFailed {
@@ -258,56 +312,208 @@ fn clear_pending_capture() {
 }
 
 // ============================================================================
+// Pending Window Bounds Storage (for window selection flow)
+// ============================================================================
+
+/// Holds enumerated window bounds while the user picks a window.
+static PENDING_WINDOWS: Mutex<Option<Vec<WindowBounds>>> = Mutex::new(None);
+
+fn store_pending_windows(bounds: Vec<WindowBounds>) -> Result<(), ScreenshotError> {
+    let mut pending = PENDING_WINDOWS
+        .lock()
+        .map_err(|e| ScreenshotError::CaptureFailed {
+            message: format!("Failed to lock pending windows: {e}"),
+        })?;
+    *pending = Some(bounds);
+    Ok(())
+}
+
+fn clear_pending_windows() {
+    if let Ok(mut pending) = PENDING_WINDOWS.lock() {
+        *pending = None;
+    }
+}
+
+// ============================================================================
+// Window Enumeration (macOS only — Core Graphics FFI)
+// ============================================================================
+
+/// Enumerates visible on-screen windows and returns their bounds relative to the given monitor.
+#[cfg(target_os = "macos")]
+fn enumerate_windows(monitor: &MonitorInfo) -> Result<Vec<WindowBounds>, ScreenshotError> {
+    use core_foundation::array::CFArray;
+    use core_foundation::base::{CFType, TCFType};
+    use core_foundation::dictionary::CFDictionary;
+    use core_foundation::number::CFNumber;
+    use core_foundation::string::CFString;
+
+    // Core Graphics FFI
+    type CFArrayRef = *const std::ffi::c_void;
+    type CFDictionaryRef = *const std::ffi::c_void;
+    type CGRect = core_graphics::geometry::CGRect;
+
+    extern "C" {
+        fn CGWindowListCopyWindowInfo(option: u32, relative_to_window: u32) -> CFArrayRef;
+        fn CGRectMakeWithDictionaryRepresentation(dict: CFDictionaryRef, rect: *mut CGRect)
+            -> bool;
+    }
+
+    // kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements
+    const OPTIONS: u32 = (1 << 0) | (1 << 4);
+    const NULL_WINDOW: u32 = 0; // kCGNullWindowID
+
+    let cf_array_ref = unsafe { CGWindowListCopyWindowInfo(OPTIONS, NULL_WINDOW) };
+    if cf_array_ref.is_null() {
+        return Err(ScreenshotError::CaptureFailed {
+            message: "CGWindowListCopyWindowInfo returned null".to_string(),
+        });
+    }
+
+    // Safety: we own the returned CFArray (Create Rule), so wrap for auto-release
+    let window_list: CFArray<CFType> =
+        unsafe { TCFType::wrap_under_create_rule(cf_array_ref as _) };
+
+    let our_pid = std::process::id();
+    let mut result = Vec::new();
+    let mon_x = monitor.x as f64;
+    let mon_y = monitor.y as f64;
+
+    let key_bounds = CFString::new("kCGWindowBounds");
+    let key_owner = CFString::new("kCGWindowOwnerName");
+    let key_name = CFString::new("kCGWindowName");
+    let key_layer = CFString::new("kCGWindowLayer");
+    let key_pid = CFString::new("kCGWindowOwnerPID");
+
+    for i in 0..window_list.len() {
+        // Each element is a CFDictionary
+        let dict_ref = unsafe { window_list.get_unchecked(i) };
+        let dict: CFDictionary<CFString, CFType> =
+            unsafe { TCFType::wrap_under_get_rule(dict_ref.as_CFTypeRef() as _) };
+
+        // Skip non-normal layers (menubar, dock, etc.)
+        let layer = dict
+            .find(&key_layer)
+            .and_then(|v| unsafe {
+                let n: CFNumber = TCFType::wrap_under_get_rule(v.as_CFTypeRef() as _);
+                n.to_i32()
+            })
+            .unwrap_or(-1);
+        if layer != 0 {
+            continue;
+        }
+
+        // Skip our own process windows (the overlay itself)
+        let pid = dict
+            .find(&key_pid)
+            .and_then(|v| unsafe {
+                let n: CFNumber = TCFType::wrap_under_get_rule(v.as_CFTypeRef() as _);
+                n.to_i32()
+            })
+            .unwrap_or(-1);
+        if pid >= 0 && pid as u32 == our_pid {
+            continue;
+        }
+
+        // Read bounds dictionary → CGRect
+        let bounds_dict = match dict.find(&key_bounds) {
+            Some(v) => v.as_CFTypeRef(),
+            None => continue,
+        };
+
+        let mut rect = core_graphics::geometry::CGRect::new(
+            &core_graphics::geometry::CGPoint::new(0.0, 0.0),
+            &core_graphics::geometry::CGSize::new(0.0, 0.0),
+        );
+        let ok = unsafe { CGRectMakeWithDictionaryRepresentation(bounds_dict as _, &mut rect) };
+        if !ok {
+            continue;
+        }
+
+        // Skip zero-sized windows
+        if rect.size.width < 1.0 || rect.size.height < 1.0 {
+            continue;
+        }
+
+        // Read owner name and window name
+        let owner_name = dict
+            .find(&key_owner)
+            .map(|v| unsafe {
+                let s: CFString = TCFType::wrap_under_get_rule(v.as_CFTypeRef() as _);
+                s.to_string()
+            })
+            .unwrap_or_default();
+
+        let window_name = dict
+            .find(&key_name)
+            .map(|v| unsafe {
+                let s: CFString = TCFType::wrap_under_get_rule(v.as_CFTypeRef() as _);
+                s.to_string()
+            })
+            .unwrap_or_default();
+
+        // Subtract monitor origin so coordinates are overlay-relative
+        result.push(WindowBounds {
+            x: rect.origin.x - mon_x,
+            y: rect.origin.y - mon_y,
+            width: rect.size.width,
+            height: rect.size.height,
+            owner_name,
+            window_name,
+        });
+    }
+
+    log::info!("Enumerated {} windows on monitor", result.len());
+    Ok(result)
+}
+
+#[cfg(not(target_os = "macos"))]
+fn enumerate_windows(_monitor: &MonitorInfo) -> Result<Vec<WindowBounds>, ScreenshotError> {
+    Err(ScreenshotError::NotSupported {
+        message: "Window enumeration is only supported on macOS".to_string(),
+    })
+}
+
+// ============================================================================
 // Selection Overlay Window
 // ============================================================================
 
-fn open_selection_overlay(app: &AppHandle) -> Result<(), ScreenshotError> {
+fn open_selection_overlay(
+    app: &AppHandle,
+    monitor: &MonitorInfo,
+    mode: &str,
+) -> Result<(), ScreenshotError> {
     use tauri::webview::WebviewWindowBuilder;
     use tauri::WebviewUrl;
 
-    let cursor_pos = app
-        .cursor_position()
-        .map_err(|e| ScreenshotError::CaptureFailed {
-            message: format!("Failed to get cursor position: {e}"),
-        })?;
-
-    let monitor = app
-        .monitor_from_point(cursor_pos.x, cursor_pos.y)
-        .ok()
-        .flatten()
-        .or_else(|| app.primary_monitor().ok().flatten())
-        .ok_or(ScreenshotError::NoMonitorFound)?;
-
-    let monitor_pos = monitor.position();
-    let monitor_size = monitor.size();
-    let scale = monitor.scale_factor();
+    let scale = monitor.scale_factor;
 
     // Close existing overlay if any
     close_selection_overlay(app);
 
-    WebviewWindowBuilder::new(
-        app,
-        AREA_SELECTION_LABEL,
-        WebviewUrl::App("screenshot-selection.html".into()),
-    )
-    .title("")
-    .position(monitor_pos.x as f64 / scale, monitor_pos.y as f64 / scale)
-    .inner_size(
-        monitor_size.width as f64 / scale,
-        monitor_size.height as f64 / scale,
-    )
-    .always_on_top(true)
-    .decorations(false)
-    .transparent(true)
-    .skip_taskbar(true)
-    .resizable(false)
-    .focused(true)
-    .build()
-    .map_err(|e| ScreenshotError::CaptureFailed {
-        message: format!("Failed to create selection overlay: {e}"),
-    })?;
+    // Pass scale factor and mode as URL query params so the frontend knows
+    // the captured monitor's scale and which selection mode to render.
+    let url_path = format!("screenshot-selection.html?scale={scale}&mode={mode}");
 
-    log::info!("Selection overlay opened");
+    WebviewWindowBuilder::new(app, AREA_SELECTION_LABEL, WebviewUrl::App(url_path.into()))
+        .title("")
+        .position(monitor.x as f64 / scale, monitor.y as f64 / scale)
+        .inner_size(monitor.width as f64 / scale, monitor.height as f64 / scale)
+        .always_on_top(true)
+        .decorations(false)
+        .transparent(true)
+        .skip_taskbar(true)
+        .resizable(false)
+        .focused(true)
+        .build()
+        .map_err(|e| ScreenshotError::CaptureFailed {
+            message: format!("Failed to create selection overlay: {e}"),
+        })?;
+
+    log::info!(
+        "Selection overlay opened on monitor at ({}, {})",
+        monitor.x,
+        monitor.y
+    );
     Ok(())
 }
 
@@ -330,12 +536,31 @@ pub async fn capture_fullscreen(app: AppHandle) -> Result<ScreenshotResult, Scre
 
     ensure_screen_recording_permission()?;
 
-    let image = capture_monitor_at_cursor(&app)?;
+    let (image, _monitor_info) = capture_monitor_at_cursor(&app)?;
     let result = encode_image_to_base64(&image)?;
 
     let _ = app.emit("screenshot-captured", &result);
+    show_main_window(&app);
 
     Ok(result)
+}
+
+/// Shows and focuses the main window (called after screenshot capture).
+/// Defensive: logs errors instead of ignoring them, never panics.
+fn show_main_window(app: &AppHandle) {
+    let Some(window) = app.get_webview_window("main") else {
+        log::warn!("Main window not found, cannot show after screenshot");
+        return;
+    };
+
+    if let Err(e) = window.show() {
+        log::error!("Failed to show main window: {e}");
+        return;
+    }
+
+    if let Err(e) = window.set_focus() {
+        log::warn!("Failed to focus main window: {e}");
+    }
 }
 
 /// Checks whether screen recording permission is currently granted.
@@ -375,11 +600,16 @@ pub async fn start_area_selection(app: AppHandle) -> Result<(), ScreenshotError>
 
     ensure_screen_recording_permission()?;
 
-    // Capture BEFORE opening overlay so the overlay is not in the screenshot
-    let image = capture_monitor_at_cursor(&app)?;
-    store_pending_capture(image)?;
+    // Capture BEFORE opening overlay so the overlay is not in the screenshot.
+    // Store monitor info alongside image to avoid re-querying cursor position.
+    let (image, monitor_info) = capture_monitor_at_cursor(&app)?;
+    let pending = PendingCapture {
+        image,
+        monitor: monitor_info.clone(),
+    };
+    store_pending_capture(pending)?;
 
-    open_selection_overlay(&app)?;
+    open_selection_overlay(&app, &monitor_info, "area")?;
 
     Ok(())
 }
@@ -397,11 +627,19 @@ pub async fn complete_area_selection(
 ) -> Result<ScreenshotResult, ScreenshotError> {
     log::info!("Completing area selection: ({x}, {y}) {width}x{height}");
 
-    let image = take_pending_capture()?;
+    let pending = take_pending_capture()?;
+    let image = pending.image;
 
     // Clamp to image bounds
     let img_w = image.width();
     let img_h = image.height();
+
+    if x + width > img_w || y + height > img_h {
+        log::warn!(
+            "Selection exceeds image dimensions: selection ({x}, {y}) {}x{} > image {img_w}x{img_h}",
+            width, height
+        );
+    }
     let safe_x = x.min(img_w.saturating_sub(1));
     let safe_y = y.min(img_h.saturating_sub(1));
     let safe_w = width.min(img_w.saturating_sub(safe_x));
@@ -417,9 +655,51 @@ pub async fn complete_area_selection(
     let result = encode_image_to_base64(&cropped)?;
 
     close_selection_overlay(&app);
+    clear_pending_windows();
     let _ = app.emit("screenshot-captured", &result);
+    show_main_window(&app);
 
     Ok(result)
+}
+
+/// Checks whether Accessibility permission is granted (needed for global shortcuts).
+#[tauri::command]
+#[specta::specta]
+pub fn check_accessibility_permission() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        extern "C" {
+            fn AXIsProcessTrusted() -> bool;
+        }
+        unsafe { AXIsProcessTrusted() }
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        true
+    }
+}
+
+/// Opens the macOS Accessibility settings pane.
+#[tauri::command]
+#[specta::specta]
+pub async fn open_accessibility_settings(app: AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        use tauri_plugin_opener::OpenerExt;
+        app.opener()
+            .open_url(
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+                None::<&str>,
+            )
+            .map_err(|e| format!("Failed to open System Settings: {e}"))
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+        Ok(())
+    }
 }
 
 /// Cancels the area selection and closes the overlay.
@@ -428,7 +708,49 @@ pub async fn complete_area_selection(
 pub fn cancel_area_selection(app: AppHandle) {
     log::info!("Area selection cancelled");
     clear_pending_capture();
+    clear_pending_windows();
     close_selection_overlay(&app);
+}
+
+/// Starts window selection: captures screen, enumerates windows, opens overlay in window mode.
+#[tauri::command]
+#[specta::specta]
+pub async fn start_window_selection(app: AppHandle) -> Result<(), ScreenshotError> {
+    log::info!("Starting window selection for screenshot");
+
+    ensure_screen_recording_permission()?;
+
+    // Capture BEFORE opening overlay so the overlay is not in the screenshot.
+    let (image, monitor_info) = capture_monitor_at_cursor(&app)?;
+
+    // Enumerate windows BEFORE opening overlay so the overlay doesn't appear in the list.
+    let windows = enumerate_windows(&monitor_info)?;
+    store_pending_windows(windows)?;
+
+    let pending = PendingCapture {
+        image,
+        monitor: monitor_info.clone(),
+    };
+    store_pending_capture(pending)?;
+
+    open_selection_overlay(&app, &monitor_info, "window")?;
+
+    Ok(())
+}
+
+/// Returns the pending window bounds for the overlay to render.
+/// Called by the frontend overlay on mount (window mode).
+#[tauri::command]
+#[specta::specta]
+pub fn get_pending_window_bounds() -> Result<Vec<WindowBounds>, ScreenshotError> {
+    let pending = PENDING_WINDOWS
+        .lock()
+        .map_err(|e| ScreenshotError::CaptureFailed {
+            message: format!("Failed to lock pending windows: {e}"),
+        })?;
+    pending.clone().ok_or(ScreenshotError::CaptureFailed {
+        message: "No pending window bounds found".to_string(),
+    })
 }
 
 // ============================================================================
@@ -438,23 +760,72 @@ pub fn cancel_area_selection(app: AppHandle) {
 /// Tracks currently registered screenshot shortcuts for selective unregistration.
 static CURRENT_FULLSCREEN_SHORTCUT: Mutex<Option<String>> = Mutex::new(None);
 static CURRENT_AREA_SHORTCUT: Mutex<Option<String>> = Mutex::new(None);
+static CURRENT_WINDOW_SELECT_SHORTCUT: Mutex<Option<String>> = Mutex::new(None);
 
 /// Registers both screenshot global shortcuts. Called from setup().
 #[cfg(desktop)]
 pub fn register_screenshot_shortcuts(app: &AppHandle) -> Result<(), String> {
-    register_fullscreen_shortcut(app, DEFAULT_FULLSCREEN_SHORTCUT)?;
-    register_area_shortcut(app, DEFAULT_AREA_SHORTCUT)?;
+    register_shortcut(
+        app,
+        DEFAULT_FULLSCREEN_SHORTCUT,
+        &CURRENT_FULLSCREEN_SHORTCUT,
+        "Fullscreen screenshot",
+        |handle| {
+            tauri::async_runtime::spawn(async move {
+                match capture_fullscreen(handle).await {
+                    Ok(r) => log::info!("Screenshot captured: {}x{}", r.width, r.height),
+                    Err(e) => log::error!("Screenshot capture failed: {e}"),
+                }
+            });
+        },
+    )?;
+    register_shortcut(
+        app,
+        DEFAULT_AREA_SHORTCUT,
+        &CURRENT_AREA_SHORTCUT,
+        "Area selection",
+        |handle| {
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = start_area_selection(handle).await {
+                    log::error!("Area selection failed: {e}");
+                }
+            });
+        },
+    )?;
+    register_shortcut(
+        app,
+        DEFAULT_WINDOW_SELECT_SHORTCUT,
+        &CURRENT_WINDOW_SELECT_SHORTCUT,
+        "Window selection",
+        |handle| {
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = start_window_selection(handle).await {
+                    log::error!("Window selection failed: {e}");
+                }
+            });
+        },
+    )?;
     log::info!("Screenshot shortcuts registered");
     Ok(())
 }
 
+/// Generic shortcut registration: unregisters old shortcut, registers new one with callback.
 #[cfg(desktop)]
-fn register_fullscreen_shortcut(app: &AppHandle, shortcut: &str) -> Result<(), String> {
+fn register_shortcut<F>(
+    app: &AppHandle,
+    shortcut: &str,
+    current_shortcut: &Mutex<Option<String>>,
+    label: &str,
+    on_pressed: F,
+) -> Result<(), String>
+where
+    F: Fn(AppHandle) + Send + Sync + 'static,
+{
     use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
     let global_shortcut = app.global_shortcut();
 
-    let mut current = CURRENT_FULLSCREEN_SHORTCUT
+    let mut current = current_shortcut
         .lock()
         .map_err(|e| format!("Failed to lock mutex: {e}"))?;
 
@@ -465,58 +836,17 @@ fn register_fullscreen_shortcut(app: &AppHandle, shortcut: &str) -> Result<(), S
     }
 
     let app_handle = app.clone();
+    let label_owned = label.to_string();
     global_shortcut
         .on_shortcut(shortcut, move |_app, _shortcut, event| {
             if event.state == ShortcutState::Pressed {
-                log::info!("Fullscreen screenshot shortcut triggered");
-                let handle = app_handle.clone();
-                tauri::async_runtime::spawn(async move {
-                    match capture_fullscreen(handle).await {
-                        Ok(r) => log::info!("Screenshot captured: {}x{}", r.width, r.height),
-                        Err(e) => log::error!("Screenshot capture failed: {e}"),
-                    }
-                });
+                log::info!("{label_owned} shortcut triggered");
+                on_pressed(app_handle.clone());
             }
         })
         .map_err(|e| format!("Failed to register shortcut '{shortcut}': {e}"))?;
 
     *current = Some(shortcut.to_string());
-    log::debug!("Registered fullscreen shortcut: {shortcut}");
-    Ok(())
-}
-
-#[cfg(desktop)]
-fn register_area_shortcut(app: &AppHandle, shortcut: &str) -> Result<(), String> {
-    use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
-
-    let global_shortcut = app.global_shortcut();
-
-    let mut current = CURRENT_AREA_SHORTCUT
-        .lock()
-        .map_err(|e| format!("Failed to lock mutex: {e}"))?;
-
-    if let Some(old) = current.take() {
-        if let Ok(parsed) = old.parse::<Shortcut>() {
-            let _ = global_shortcut.unregister(parsed);
-        }
-    }
-
-    let app_handle = app.clone();
-    global_shortcut
-        .on_shortcut(shortcut, move |_app, _shortcut, event| {
-            if event.state == ShortcutState::Pressed {
-                log::info!("Area selection shortcut triggered");
-                let handle = app_handle.clone();
-                tauri::async_runtime::spawn(async move {
-                    if let Err(e) = start_area_selection(handle).await {
-                        log::error!("Area selection failed: {e}");
-                    }
-                });
-            }
-        })
-        .map_err(|e| format!("Failed to register shortcut '{shortcut}': {e}"))?;
-
-    *current = Some(shortcut.to_string());
-    log::debug!("Registered area shortcut: {shortcut}");
+    log::debug!("Registered {label} shortcut: {shortcut}");
     Ok(())
 }

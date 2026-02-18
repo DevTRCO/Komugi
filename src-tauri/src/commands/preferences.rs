@@ -23,6 +23,8 @@ fn get_preferences_path(app: &AppHandle) -> Result<PathBuf, String> {
 
 /// Load the saved quick pane shortcut from preferences, returning None on any failure.
 /// Used at startup before the full preferences system is available.
+/// Currently unused: Quick Pane disabled due to NSPanel KVO crash.
+#[allow(dead_code)]
 pub fn load_quick_pane_shortcut(app: &AppHandle) -> Option<String> {
     let path = get_preferences_path(app).ok()?;
     if !path.exists() {

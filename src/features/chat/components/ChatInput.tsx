@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, Square } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { Send, Square, X, ImageIcon } from 'lucide-react'
 import { useChatStore } from '../stores/chatStore'
 
 interface ChatInputProps {
@@ -13,7 +14,14 @@ export function ChatInput({ onSend, onAbort }: ChatInputProps) {
   const [text, setText] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isGenerating = useChatStore(state => state.isGenerating)
+  const pendingScreenshot = useChatStore(state => state.pendingScreenshot)
+  const screenshotDecisionPending = useChatStore(
+    state => state.screenshotDecisionPending
+  )
+  const { t } = useTranslation()
   const isOverLimit = text.length > MAX_MESSAGE_LENGTH
+  const showPendingPreview =
+    pendingScreenshot !== null && !screenshotDecisionPending
 
   // Auto-resize textarea
   useEffect(() => {
@@ -45,6 +53,21 @@ export function ChatInput({ onSend, onAbort }: ChatInputProps) {
   return (
     <div className="border-t border-border bg-background p-3">
       <div className="mx-auto max-w-2xl">
+        {showPendingPreview && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-2.5 py-1.5">
+            <ImageIcon size={14} className="shrink-0 text-muted-foreground" />
+            <span className="flex-1 truncate text-xs text-muted-foreground">
+              {t('screenshot.decision.pendingHint')}
+            </span>
+            <button
+              onClick={() => useChatStore.getState().clearPendingScreenshot()}
+              className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-foreground"
+              aria-label="Remove pending screenshot"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
         {isOverLimit && (
           <p className="mb-1 text-xs text-destructive">
             Message too long ({text.length}/{MAX_MESSAGE_LENGTH})

@@ -106,6 +106,3 @@ export const notifications = {
   warning: (title: string, message?: string, native?: boolean) =>
     notify(title, message, { type: 'warning', native }),
 }
-
-// Export individual convenience functions
-export const { success, error, info, warning } = notifications

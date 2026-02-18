@@ -9,6 +9,7 @@ import { RightSideBar } from './RightSideBar'
 import { MainWindowContent } from './MainWindowContent'
 import { CommandPalette } from '@/components/command-palette/CommandPalette'
 import { PreferencesDialog } from '@/components/preferences/PreferencesDialog'
+import { ShortcutOverlay } from '@/components/ShortcutOverlay'
 import { Toaster } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
 import { useUIStore } from '@/store/ui-store'
@@ -78,6 +79,7 @@ export function MainWindow() {
       {/* Global UI Components (hidden until triggered) */}
       <CommandPalette />
       <PreferencesDialog />
+      <ShortcutOverlay />
       <Toaster
         position="bottom-right"
         theme={

@@ -1,4 +1,5 @@
 import { useChatStore } from '../stores/chatStore'
+import { MarkdownRenderer } from './MarkdownRenderer'
 
 /**
  * Shows the in-progress streaming response from the AI.
@@ -24,8 +25,8 @@ export function StreamingMessage() {
           )}
         </div>
         {streamingContent && (
-          <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed text-foreground whitespace-pre-wrap">
-            {streamingContent}
+          <div>
+            <MarkdownRenderer content={streamingContent} />
             <span className="inline-block h-4 w-0.5 animate-pulse bg-foreground/50" />
           </div>
         )}

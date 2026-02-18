@@ -16,6 +16,7 @@
   "preferences.description": "تخصيص تفضيلات التطبيق الخاص بك هنا.",
   "preferences.general": "عام",
   "preferences.appearance": "المظهر",
+  "preferences.shortcuts": "الاختصارات",
   "preferences.advanced": "متقدم",
 
   "preferences.general.keyboardShortcuts": "اختصارات لوحة المفاتيح",
@@ -94,6 +95,17 @@
   "titlebar.showRightSidebar": "إظهار الشريط الجانبي الأيمن",
   "titlebar.hideRightSidebar": "إخفاء الشريط الجانبي الأيمن",
   "titlebar.settings": "الإعدادات",
+
+  "chat.emptyState": "ماذا تريد أن تعرف عن لقطة الشاشة هذه؟",
+
+  "screenshot.decision.title": "تم التقاط لقطة شاشة جديدة",
+  "screenshot.decision.addToSession": "إضافة إلى الجلسة",
+  "screenshot.decision.newTopic": "موضوع جديد",
+  "screenshot.decision.pendingHint": "سيتم إرسال لقطة الشاشة مع رسالتك التالية",
+
+  "presets.bugExtract": "استخراج الأخطاء",
+  "presets.explain": "اشرح",
+  "presets.uiuxAssessment": "تقييم التصميم",
 
   "toast.success.preferencesSaved": "تم حفظ التفضيلات",
   "toast.success.testToast": "إشعار اختباري",

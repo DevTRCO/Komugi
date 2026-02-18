@@ -1,5 +1,7 @@
+@import 'katex/dist/katex.min.css';
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@plugin '@tailwindcss/typography';
 @import './theme-variables.css';
 
 @custom-variant dark (&:is(.dark *));
@@ -54,4 +56,68 @@
     -webkit-app-region: drag;
     app-region: drag;
   }
+}
+
+/* Code block styling for markdown */
+.prose pre {
+  @apply rounded-lg bg-muted/50 border border-border p-4 overflow-x-auto;
+}
+
+.prose pre code {
+  @apply text-xs leading-relaxed;
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+}
+
+.prose :not(pre) > code {
+  @apply rounded bg-muted/70 px-1.5 py-0.5 text-xs font-medium;
+}
+
+/* Allow text selection in chat messages and code blocks */
+.prose,
+.prose * {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+/* highlight.js token colors — adapts to light/dark via CSS variables */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in {
+  color: var(--color-primary);
+}
+
+.hljs-string,
+.hljs-attr {
+  color: oklch(0.65 0.15 150);
+}
+
+.dark .hljs-string,
+.dark .hljs-attr {
+  color: oklch(0.75 0.15 150);
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--color-muted-foreground);
+  font-style: italic;
+}
+
+.hljs-number,
+.hljs-literal {
+  color: oklch(0.65 0.15 30);
+}
+
+.dark .hljs-number,
+.dark .hljs-literal {
+  color: oklch(0.75 0.15 30);
+}
+
+.hljs-title,
+.hljs-section {
+  color: oklch(0.6 0.15 250);
+}
+
+.dark .hljs-title,
+.dark .hljs-section {
+  color: oklch(0.75 0.15 250);
 }

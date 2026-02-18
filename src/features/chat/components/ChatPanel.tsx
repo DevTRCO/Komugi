@@ -1,22 +1,29 @@
 import { useEffect, useRef } from 'react'
-import { useChatStore } from '../stores/chatStore'
+import { useTranslation } from 'react-i18next'
+import { useChatStore, selectActiveSession } from '../stores/chatStore'
 import { useSendMessage } from '@/features/ai'
 import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
 import { StreamingMessage } from './StreamingMessage'
 import { ScreenshotPreview } from './ScreenshotPreview'
+import { SessionTabs } from './SessionTabs'
+import { PresetPills } from './PresetPills'
+import { ScreenshotDecisionBanner } from './ScreenshotDecisionBanner'
 import { AlertCircle } from 'lucide-react'
+import { useScreenshotStore } from '@/features/screenshot/stores/screenshotStore'
+import { PermissionGuide } from '@/features/screenshot/components/PermissionGuide'
 
 /**
  * Main chat panel component. Shows screenshot context, messages, and input.
  * Only renders when there's an active session (screenshot taken).
  */
 export function ChatPanel() {
-  const session = useChatStore(state => state.currentSession)
+  const session = useChatStore(selectActiveSession)
   const lastError = useChatStore(state => state.lastError)
   const isGenerating = useChatStore(state => state.isGenerating)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { send, abort } = useSendMessage()
+  const { t } = useTranslation()
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -34,12 +41,16 @@ export function ChatPanel() {
 
   return (
     <div className="flex h-full flex-col">
+      <SessionTabs />
       <ScreenshotPreview onClose={handleEndSession} />
 
       <div className="flex-1 overflow-y-auto">
         {session.messages.length === 0 && (
-          <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted-foreground">
-            <p>What do you want to understand about this screenshot?</p>
+          <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              {t('chat.emptyState')}
+            </p>
+            <PresetPills onSelect={send} disabled={isGenerating} />
           </div>
         )}
 
@@ -61,12 +72,23 @@ export function ChatPanel() {
         <div ref={messagesEndRef} />
       </div>
 
+      <ScreenshotDecisionBanner />
       <ChatInput onSend={send} onAbort={abort} />
     </div>
   )
 }
 
+function Kbd({ children }: { children: string }) {
+  return (
+    <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs">
+      {children}
+    </kbd>
+  )
+}
+
 function EmptyState() {
+  const lastError = useScreenshotStore(state => state.lastError)
+
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
       <div className="rounded-full bg-muted p-4">
@@ -88,18 +110,22 @@ function EmptyState() {
         <h2 className="text-lg font-semibold text-foreground">
           Take a screenshot to start
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Use{' '}
-          <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
-            Cmd+Shift+1
-          </kbd>{' '}
-          for fullscreen or{' '}
-          <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
-            Cmd+Shift+2
-          </kbd>{' '}
-          to select an area.
-        </p>
+        <div className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
+          <span>
+            <Kbd>Cmd+Shift+9</Kbd> Fullscreen
+          </span>
+          <span>
+            <Kbd>Cmd+Shift+0</Kbd> Select area
+          </span>
+          <span>
+            <Kbd>Cmd+Shift+8</Kbd> Select window
+          </span>
+        </div>
       </div>
+
+      {lastError && <p className="text-sm text-destructive">{lastError}</p>}
+
+      <PermissionGuide />
     </div>
   )
 }

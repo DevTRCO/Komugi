@@ -16,6 +16,7 @@
   "preferences.description": "Personnalisez les préférences de votre application ici.",
   "preferences.general": "Général",
   "preferences.appearance": "Apparence",
+  "preferences.shortcuts": "Raccourcis",
   "preferences.advanced": "Avancé",
 
   "preferences.general.keyboardShortcuts": "Raccourcis clavier",
@@ -94,6 +95,17 @@
   "titlebar.showRightSidebar": "Afficher la barre latérale droite",
   "titlebar.hideRightSidebar": "Masquer la barre latérale droite",
   "titlebar.settings": "Paramètres",
+
+  "chat.emptyState": "Que voulez-vous savoir sur cette capture d'écran ?",
+
+  "screenshot.decision.title": "Nouvelle capture d'écran",
+  "screenshot.decision.addToSession": "Ajouter à la session",
+  "screenshot.decision.newTopic": "Nouveau sujet",
+  "screenshot.decision.pendingHint": "La capture sera envoyée avec votre prochain message",
+
+  "presets.bugExtract": "Extraire les bugs",
+  "presets.explain": "Expliquer",
+  "presets.uiuxAssessment": "Évaluation UI/UX",
 
   "toast.success.preferencesSaved": "Préférences enregistrées",
   "toast.success.testToast": "Toast de test",

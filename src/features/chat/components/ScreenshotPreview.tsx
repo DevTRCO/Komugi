@@ -1,4 +1,4 @@
-import { useChatStore } from '../stores/chatStore'
+import { useChatStore, selectActiveSession } from '../stores/chatStore'
 import { X } from 'lucide-react'
 
 interface ScreenshotPreviewProps {
@@ -6,7 +6,7 @@ interface ScreenshotPreviewProps {
 }
 
 export function ScreenshotPreview({ onClose }: ScreenshotPreviewProps) {
-  const session = useChatStore(state => state.currentSession)
+  const session = useChatStore(selectActiveSession)
 
   if (!session) return null
 

@@ -43,9 +43,23 @@ vi.mock('@/lib/tauri-bindings', () => ({
     cleanupOldRecoveryFiles: vi
       .fn()
       .mockResolvedValue({ status: 'ok', data: 0 }),
+    checkScreenRecordingPermission: vi.fn().mockResolvedValue(true),
+    checkAccessibilityPermission: vi.fn().mockResolvedValue(true),
+    openScreenRecordingSettings: vi
+      .fn()
+      .mockResolvedValue({ status: 'ok', data: null }),
+    openAccessibilitySettings: vi
+      .fn()
+      .mockResolvedValue({ status: 'ok', data: null }),
+    historySaveSession: vi.fn().mockResolvedValue({ status: 'ok', data: null }),
+    historySaveMessages: vi
+      .fn()
+      .mockResolvedValue({ status: 'ok', data: null }),
+    historyListSessions: vi.fn().mockResolvedValue({ status: 'ok', data: [] }),
+    historyLoadSession: vi.fn().mockResolvedValue({ status: 'ok', data: null }),
+    historyDeleteSession: vi
+      .fn()
+      .mockResolvedValue({ status: 'ok', data: null }),
+    historyClearAll: vi.fn().mockResolvedValue({ status: 'ok', data: null }),
   },
-  unwrapResult: vi.fn((result: { status: string; data?: unknown }) => {
-    if (result.status === 'ok') return result.data
-    throw result
-  }),
 }))

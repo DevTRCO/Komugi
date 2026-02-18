@@ -1,6 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/main.tsx", "vite.config.ts", "vitest.config.ts"],
+  "entry": [
+    "src/main.tsx",
+    "src/quick-pane-main.tsx",
+    "src/screenshot-selection-main.tsx",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
   "project": ["src/**/*.{ts,tsx}"],
   "ignore": [
     "src/components/ui/**",
@@ -15,7 +21,9 @@
     "tw-animate-css",
     "react-day-picker",
     "@testing-library/*",
-    "babel-plugin-react-compiler"
+    "babel-plugin-react-compiler",
+    "@tailwindcss/typography",
+    "katex"
   ],
   "ignoreExportsUsedInFile": true
 }

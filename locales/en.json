@@ -16,6 +16,7 @@
   "preferences.description": "Customize your Komugi preferences.",
   "preferences.general": "General",
   "preferences.appearance": "Appearance",
+  "preferences.shortcuts": "Shortcuts",
   "preferences.advanced": "Advanced",
 
   "preferences.general.tutoring": "Tutoring",
@@ -93,6 +94,17 @@
   "titlebar.showRightSidebar": "Show Right Sidebar",
   "titlebar.hideRightSidebar": "Hide Right Sidebar",
   "titlebar.settings": "Settings",
+
+  "chat.emptyState": "What do you want to know about this screenshot?",
+
+  "screenshot.decision.title": "New screenshot captured",
+  "screenshot.decision.addToSession": "Add to session",
+  "screenshot.decision.newTopic": "New topic",
+  "screenshot.decision.pendingHint": "Screenshot will be sent with your next message",
+
+  "presets.bugExtract": "Extract Bug",
+  "presets.explain": "Explain",
+  "presets.uiuxAssessment": "UI/UX Assessment",
 
   "toast.success.preferencesSaved": "Preferences saved",
   "toast.success.testToast": "Test Toast",

@@ -1,80 +1,90 @@
 import { create } from 'zustand'
-import { devtools, persist } from 'zustand/middleware'
-import type { ChatSession } from '@/features/chat/stores/chatStore'
-import { validateArray, isSessionSummary } from '@/lib/store-validation'
-
-/** Lightweight session summary for the sidebar list (no screenshot data) */
-export interface SessionSummary {
-  id: string
-  /** First user message as preview text */
-  preview: string
-  messageCount: number
-  createdAt: number
-}
+import { devtools } from 'zustand/middleware'
+import { commands } from '@/lib/tauri-bindings'
+import type { StoredSessionSummary } from '@/lib/tauri-bindings'
+import { logger } from '@/lib/logger'
 
 interface HistoryState {
   /** List of past session summaries, newest first */
-  sessions: readonly SessionSummary[]
+  sessions: readonly StoredSessionSummary[]
+  /** Whether initial load from SQLite is in progress */
+  isLoading: boolean
 
-  addSession: (session: ChatSession) => void
-  removeSession: (id: string) => void
-  clearHistory: () => void
+  loadSessions: () => Promise<void>
+  removeSession: (id: string) => Promise<void>
+  clearHistory: () => Promise<void>
+  /** Refresh the sessions list from DB (e.g. after saving a new session) */
+  refresh: () => Promise<void>
 }
 
 const MAX_HISTORY_SESSIONS = 50
 
 export const useHistoryStore = create<HistoryState>()(
   devtools(
-    persist(
-      (set, get) => ({
-        sessions: [],
+    (set, get) => ({
+      sessions: [],
+      isLoading: false,
 
-        addSession: (session: ChatSession) => {
-          const firstUserMessage = session.messages.find(m => m.role === 'user')
-          if (!firstUserMessage) return
+      loadSessions: async () => {
+        if (get().isLoading) return
+        set({ isLoading: true }, undefined, 'loadSessions/start')
 
-          const summary: SessionSummary = {
-            id: session.id,
-            preview:
-              firstUserMessage.content.length > 80
-                ? `${firstUserMessage.content.slice(0, 80)}...`
-                : firstUserMessage.content,
-            messageCount: session.messages.length,
-            createdAt: session.createdAt,
-          }
+        const result = await commands.historyListSessions(
+          MAX_HISTORY_SESSIONS,
+          0
+        )
+        if (result.status === 'ok') {
+          set(
+            { sessions: result.data, isLoading: false },
+            undefined,
+            'loadSessions/success'
+          )
+        } else {
+          logger.error('Failed to load history sessions', {
+            error: result.error,
+          })
+          set({ isLoading: false }, undefined, 'loadSessions/error')
+        }
+      },
 
-          const existing = get().sessions
-          // Don't duplicate
-          if (existing.some(s => s.id === session.id)) return
+      removeSession: async (id: string) => {
+        // Optimistic update
+        const prev = get().sessions
+        set(
+          { sessions: prev.filter(s => s.id !== id) },
+          undefined,
+          'removeSession'
+        )
 
-          const updated = [summary, ...existing].slice(0, MAX_HISTORY_SESSIONS)
-          set({ sessions: updated }, undefined, 'addSession')
-        },
+        const result = await commands.historyDeleteSession(id)
+        if (result.status === 'error') {
+          logger.error('Failed to delete session', { error: result.error })
+          // Rollback
+          set({ sessions: prev }, undefined, 'removeSession/rollback')
+        }
+      },
 
-        removeSession: id => {
-          const updated = get().sessions.filter(s => s.id !== id)
-          set({ sessions: updated }, undefined, 'removeSession')
-        },
+      clearHistory: async () => {
+        const prev = get().sessions
+        set({ sessions: [] }, undefined, 'clearHistory')
 
-        clearHistory: () => set({ sessions: [] }, undefined, 'clearHistory'),
-      }),
-      {
-        name: 'komugi-history',
-        merge: (persisted: unknown, current: HistoryState): HistoryState => {
-          if (typeof persisted !== 'object' || persisted === null)
-            return current
-          const p = persisted as Record<string, unknown>
-          return {
-            ...current,
-            sessions: validateArray(
-              p.sessions,
-              isSessionSummary,
-              'history.sessions'
-            ),
-          }
-        },
-      }
-    ),
+        const result = await commands.historyClearAll()
+        if (result.status === 'error') {
+          logger.error('Failed to clear history', { error: result.error })
+          set({ sessions: prev }, undefined, 'clearHistory/rollback')
+        }
+      },
+
+      refresh: async () => {
+        const result = await commands.historyListSessions(
+          MAX_HISTORY_SESSIONS,
+          0
+        )
+        if (result.status === 'ok') {
+          set({ sessions: result.data }, undefined, 'refresh')
+        }
+      },
+    }),
     { name: 'history-store' }
   )
 )

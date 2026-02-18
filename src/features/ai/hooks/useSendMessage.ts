@@ -1,76 +1,93 @@
-import { useRef, useCallback } from 'react'
-import { useChatStore } from '@/features/chat/stores/chatStore'
+import { useRef } from 'react'
+import {
+  useChatStore,
+  selectActiveSession,
+} from '@/features/chat/stores/chatStore'
 import { streamGeminiResponse } from '../api/gemini'
+import {
+  extractUrls,
+  fetchUrlContents,
+  buildEnrichedMessage,
+} from '../utils/url-enrichment'
 import { logger } from '@/lib/logger'
 
-/**
- * Hook for sending messages and streaming AI responses.
- * Returns a send function and an abort function.
- */
+function getIncompleteWarning(finishReason: string | null): string {
+  switch (finishReason) {
+    case 'SAFETY':
+      return 'Response was filtered for safety reasons and may be incomplete.'
+    case 'MAX_TOKENS':
+      return 'Response reached the maximum length and may be incomplete.'
+    default:
+      return 'Response may be incomplete due to a connection issue.'
+  }
+}
+
 export function useSendMessage() {
   const abortRef = useRef<AbortController | null>(null)
 
-  const send = useCallback(async (message: string) => {
-    const {
-      currentSession,
-      addUserMessage,
-      finalizeStreaming,
-      setIsGenerating,
-      setLastError,
-    } = useChatStore.getState()
+  function send(message: string, displayMessage?: string): void {
+    void sendAsync(message, displayMessage)
+  }
 
-    if (!currentSession) {
+  async function sendAsync(
+    message: string,
+    displayMessage?: string
+  ): Promise<void> {
+    const state = useChatStore.getState()
+    const session = selectActiveSession(state)
+    const { addUserMessage, finalizeStreaming, setIsGenerating, setLastError } =
+      state
+
+    if (!session) {
       logger.warn('Cannot send message: no active session')
       return
     }
 
-    if (currentSession.messages.length >= 30) {
-      setLastError('Maximum messages per session reached')
-      return
-    }
-
-    // Abort any previous request
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
 
-    addUserMessage(message)
+    // Capture state before addUserMessage clears pendingScreenshot
+    const currentScreenshot = state.pendingScreenshot
+    const previousMessages = session.messages
+    const { screenshotBase64, difficulty } = session
+
+    addUserMessage(displayMessage ?? message, currentScreenshot ?? undefined)
     setIsGenerating(true)
 
     try {
-      // Get fresh state after addUserMessage
-      const freshSession = useChatStore.getState().currentSession
-      if (!freshSession) return
+      let apiMessage = message
+      const urls = extractUrls(message)
+      if (urls.length > 0) {
+        const fetched = await fetchUrlContents(urls)
+        if (controller.signal.aborted) {
+          setIsGenerating(false)
+          return
+        }
+        apiMessage = buildEnrichedMessage(message, fetched)
+      }
 
       const result = await streamGeminiResponse(
-        freshSession.screenshotBase64,
-        freshSession.messages,
-        message,
-        freshSession.difficulty,
+        screenshotBase64,
+        previousMessages,
+        apiMessage,
+        difficulty,
         chunk => {
-          const { appendStreamingContent: append } = useChatStore.getState()
-          append(chunk)
+          useChatStore.getState().appendStreamingContent(chunk)
         },
-        controller.signal
+        controller.signal,
+        currentScreenshot ?? undefined
       )
 
-      // Only finalize if not aborted
       if (!controller.signal.aborted) {
         finalizeStreaming()
 
         if (!result.complete) {
-          const warning =
-            result.finishReason === 'SAFETY'
-              ? 'Response was filtered for safety reasons and may be incomplete.'
-              : result.finishReason === 'MAX_TOKENS'
-                ? 'Response reached the maximum length and may be incomplete.'
-                : 'Response may be incomplete due to a connection issue.'
-          setLastError(warning)
+          setLastError(getIncompleteWarning(result.finishReason))
         }
       }
     } catch (error) {
       if (controller.signal.aborted) {
-        // User cancelled — clear streaming state and partial content
         useChatStore.setState({ isGenerating: false, streamingContent: '' })
         return
       }
@@ -80,13 +97,13 @@ export function useSendMessage() {
       logger.error('AI response failed', { error: errorMessage })
       setLastError(errorMessage)
     }
-  }, [])
+  }
 
-  const abort = useCallback(() => {
+  function abort(): void {
     abortRef.current?.abort()
     abortRef.current = null
     useChatStore.setState({ isGenerating: false, streamingContent: '' })
-  }, [])
+  }
 
   return { send, abort }
 }

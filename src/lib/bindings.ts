@@ -93,6 +93,7 @@ async cleanupOldRecoveryFiles() : Promise<Result<number, RecoveryError>> {
 },
 /**
  * Shows the quick pane window and makes it the key window (for keyboard input).
+ * Returns Ok silently if the panel was never initialized (disabled for KVO crash workaround).
  */
 async showQuickPane() : Promise<Result<null, string>> {
     try {
@@ -105,6 +106,7 @@ async showQuickPane() : Promise<Result<null, string>> {
 /**
  * Dismisses the quick pane window.
  * On macOS, resigns key window status before hiding to avoid activating main window.
+ * Returns Ok silently if the panel was never initialized.
  */
 async dismissQuickPane() : Promise<Result<null, string>> {
     try {
@@ -116,6 +118,7 @@ async dismissQuickPane() : Promise<Result<null, string>> {
 },
 /**
  * Toggles the quick pane window visibility.
+ * Returns Ok silently if the panel was never initialized.
  */
 async toggleQuickPane() : Promise<Result<null, string>> {
     try {
@@ -157,13 +160,8 @@ async captureFullscreen() : Promise<Result<ScreenshotResult, ScreenshotError>> {
 /**
  * Checks whether screen recording permission is currently granted.
  */
-async checkScreenRecordingPermission() : Promise<Result<boolean, never>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("check_screen_recording_permission") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async checkScreenRecordingPermission() : Promise<boolean> {
+    return await TAURI_INVOKE("check_screen_recording_permission");
 },
 /**
  * Opens the macOS Screen Recording settings pane.
@@ -189,6 +187,7 @@ async startAreaSelection() : Promise<Result<null, ScreenshotError>> {
 },
 /**
  * Completes area selection with the given region coordinates.
+ * Called from the overlay window after the user finishes drawing.
  */
 async completeAreaSelection(x: number, y: number, width: number, height: number) : Promise<Result<ScreenshotResult, ScreenshotError>> {
     try {
@@ -201,8 +200,125 @@ async completeAreaSelection(x: number, y: number, width: number, height: number)
 /**
  * Cancels the area selection and closes the overlay.
  */
-async cancelAreaSelection() : Promise<null> {
-    return await TAURI_INVOKE("cancel_area_selection");
+async cancelAreaSelection() : Promise<void> {
+    await TAURI_INVOKE("cancel_area_selection");
+},
+/**
+ * Starts window selection: captures screen, enumerates windows, opens overlay in window mode.
+ */
+async startWindowSelection() : Promise<Result<null, ScreenshotError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("start_window_selection") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Returns the pending window bounds for the overlay to render.
+ * Called by the frontend overlay on mount (window mode).
+ */
+async getPendingWindowBounds() : Promise<Result<WindowBounds[], ScreenshotError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_pending_window_bounds") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Checks whether Accessibility permission is granted (needed for global shortcuts).
+ */
+async checkAccessibilityPermission() : Promise<boolean> {
+    return await TAURI_INVOKE("check_accessibility_permission");
+},
+/**
+ * Opens the macOS Accessibility settings pane.
+ */
+async openAccessibilitySettings() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("open_accessibility_settings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Upsert a full session (session row + all messages).
+ */
+async historySaveSession(session: StoredSession) : Promise<Result<null, HistoryError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("history_save_session", { session }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Incrementally save messages for an existing session (appends new, updates existing).
+ */
+async historySaveMessages(sessionId: string, messages: StoredMessage[]) : Promise<Result<null, HistoryError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("history_save_messages", { sessionId, messages }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * List session summaries (newest first, paginated). No screenshot data.
+ */
+async historyListSessions(limit: number, offset: number) : Promise<Result<StoredSessionSummary[], HistoryError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("history_list_sessions", { limit, offset }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Load a full session with all messages.
+ */
+async historyLoadSession(sessionId: string) : Promise<Result<StoredSession, HistoryError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("history_load_session", { sessionId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Delete a single session and all its messages (CASCADE).
+ */
+async historyDeleteSession(sessionId: string) : Promise<Result<null, HistoryError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("history_delete_session", { sessionId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Delete all sessions and messages.
+ */
+async historyClearAll() : Promise<Result<null, HistoryError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("history_clear_all") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Fetches a public URL and returns its content as plain text.
+ */
+async fetchUrlContent(url: string) : Promise<Result<FetchedUrlContent, UrlFetchError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("fetch_url_content", { url }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -220,27 +336,44 @@ async cancelAreaSelection() : Promise<null> {
  * Application preferences that persist to disk.
  * Only contains settings that should be saved between sessions.
  */
-export type AppPreferences = { theme: string;
+export type AppPreferences = { theme: string; 
 /**
  * Global shortcut for quick pane (e.g., "CommandOrControl+Shift+.")
  * If None, uses the default shortcut
  */
-quick_pane_shortcut: string | null;
+quick_pane_shortcut: string | null; 
 /**
  * User's preferred language (e.g., "en", "es", "de")
  * If None, uses system locale detection
  */
-language: string | null;
+language: string | null; 
 /**
- * Global shortcut for fullscreen screenshot
+ * Global shortcut for fullscreen screenshot (e.g., "CommandOrControl+Shift+1")
  * If None, uses the default shortcut
  */
-fullscreen_screenshot_shortcut: string | null;
+fullscreen_screenshot_shortcut: string | null; 
 /**
- * Global shortcut for area selection screenshot
+ * Global shortcut for area selection screenshot (e.g., "CommandOrControl+Shift+2")
  * If None, uses the default shortcut
  */
-area_screenshot_shortcut: string | null }
+area_screenshot_shortcut: string | null; 
+/**
+ * Global shortcut for window selection screenshot (e.g., "CommandOrControl+Shift+8")
+ * If None, uses the default shortcut
+ */
+window_screenshot_shortcut: string | null }
+/**
+ * Error types for history/database operations
+ */
+export type HistoryError = 
+/**
+ * Database operation failed
+ */
+{ type: "DatabaseError"; message: string } | 
+/**
+ * Session not found
+ */
+{ type: "NotFound"; id: string }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 /**
  * Error types for recovery operations (typed for frontend matching)
@@ -267,23 +400,141 @@ export type RecoveryError =
  */
 { type: "ParseError"; message: string }
 /**
- * Result of a successful screenshot capture operation.
- */
-export type ScreenshotResult = {
-image_base64: string;
-width: number;
-height: number;
-captured_at: string }
-/**
  * Typed errors for screenshot operations.
  */
-export type ScreenshotError =
-{ type: "PermissionDenied"; message: string } |
-{ type: "NoMonitorFound" } |
-{ type: "CaptureFailed"; message: string } |
-{ type: "EncodingFailed"; message: string } |
-{ type: "ImageTooLarge"; max_bytes: number } |
+export type ScreenshotError = 
+/**
+ * Screen recording permission not granted (macOS)
+ */
+{ type: "PermissionDenied"; message: string } | 
+/**
+ * No monitor found at the cursor position
+ */
+{ type: "NoMonitorFound" } | 
+/**
+ * Screen capture failed
+ */
+{ type: "CaptureFailed"; message: string } | 
+/**
+ * Image encoding failed
+ */
+{ type: "EncodingFailed"; message: string } | 
+/**
+ * Image exceeds size limit
+ */
+{ type: "ImageTooLarge"; max_bytes: number } | 
+/**
+ * Feature not available on this platform
+ */
 { type: "NotSupported"; message: string }
+/**
+ * Result of a successful screenshot capture operation.
+ */
+export type ScreenshotResult = { 
+/**
+ * Base64-encoded PNG image data
+ */
+image_base64: string; 
+/**
+ * Width of the captured image in pixels
+ */
+width: number; 
+/**
+ * Height of the captured image in pixels
+ */
+height: number; 
+/**
+ * Timestamp of the capture (unix seconds)
+ */
+captured_at: string }
+/**
+ * A single chat message stored in the database
+ */
+export type StoredMessage = { id: string; session_id: string; role: string; content: string; timestamp: number; sort_order: number; 
+/**
+ * Optional screenshot attached to this specific message (multi-screenshot sessions)
+ */
+screenshot_base64: string | null; screenshot_width: number | null; screenshot_height: number | null }
+/**
+ * A full session with screenshot and all messages (for load/save)
+ */
+export type StoredSession = { id: string; screenshot_base64: string; screenshot_width: number; screenshot_height: number; difficulty: string; created_at: number; updated_at: number; messages: StoredMessage[] }
+/**
+ * Lightweight session summary for sidebar listing (no screenshot)
+ */
+export type StoredSessionSummary = { id: string; preview: string; message_count: number; difficulty: string; created_at: number; updated_at: number }
+/**
+ * Successfully fetched and converted page content.
+ */
+export type FetchedUrlContent = {
+/**
+ * The original URL that was fetched
+ */
+url: string;
+/**
+ * Plain text extracted from the page
+ */
+text: string;
+/**
+ * Page title if found
+ */
+title: string | null;
+/**
+ * Whether the text was truncated to fit the limit
+ */
+truncated: boolean }
+/**
+ * Typed errors for URL fetch operations.
+ */
+export type UrlFetchError =
+/**
+ * URL failed validation (bad scheme, parse error)
+ */
+{ type: "InvalidUrl"; message: string } |
+/**
+ * URL points to a private/internal host
+ */
+{ type: "BlockedUrl"; message: string } |
+/**
+ * HTTP request failed
+ */
+{ type: "FetchFailed"; message: string } |
+/**
+ * Request timed out
+ */
+{ type: "Timeout" } |
+/**
+ * Response body exceeded size limit
+ */
+{ type: "ContentTooLarge" }
+/**
+ * Bounds of a visible window, relative to the monitor origin (in points).
+ */
+export type WindowBounds = { 
+/**
+ * X position relative to monitor origin (points)
+ */
+x: number; 
+/**
+ * Y position relative to monitor origin (points)
+ */
+y: number; 
+/**
+ * Width in points
+ */
+width: number; 
+/**
+ * Height in points
+ */
+height: number; 
+/**
+ * Application name (e.g., "Safari", "Finder")
+ */
+owner_name: string; 
+/**
+ * Window title (may be empty)
+ */
+window_name: string }
 
 /** tauri-specta globals **/
 

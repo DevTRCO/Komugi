@@ -1,15 +1,20 @@
 import { logger } from '@/lib/logger'
-import type { DifficultyLevel } from '@/features/chat/stores/chatStore'
-import type { ChatMessage } from '@/features/chat/stores/chatStore'
+import type {
+  ChatMessage,
+  DifficultyLevel,
+  ScreenshotAttachment,
+} from '@/features/chat/stores/chatStore'
 import { buildSystemPrompt, buildUserPrompt } from '../config/prompts'
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
-const MODEL = 'gemini-2.5-flash-preview-05-20'
-const MAX_TOKENS = 1024
-const REQUEST_TIMEOUT_MS = 30_000
+const MODEL = 'gemini-3-flash-preview'
+const MAX_OUTPUT_TOKENS = 65_536
+const THINKING_BUDGET = 8_192
+const REQUEST_TIMEOUT_MS = 120_000
 
 interface GeminiPart {
   text?: string
+  thought?: boolean
   inline_data?: { mime_type: string; data: string }
 }
 
@@ -20,7 +25,7 @@ interface GeminiContent {
 
 interface GeminiStreamChunk {
   candidates?: {
-    content?: { parts?: { text?: string }[] }
+    content?: { parts?: GeminiPart[] }
     finishReason?: string
   }[]
   error?: { message: string }
@@ -47,28 +52,29 @@ function buildContents(
   screenshotBase64: string,
   messages: readonly ChatMessage[],
   currentUserMessage: string,
-  difficulty: DifficultyLevel
+  currentMessageScreenshot?: ScreenshotAttachment
 ): GeminiContent[] {
   const contents: GeminiContent[] = []
+  const sessionScreenshotPart: GeminiPart = {
+    inline_data: { mime_type: 'image/png', data: screenshotBase64 },
+  }
+  let screenshotAttached = false
 
-  // System instruction is handled separately in Gemini API
-  // First message includes the screenshot
-  const isFirstUserMessage =
-    messages.filter(m => m.role === 'user').length === 0
-
-  // Add conversation history
   for (const msg of messages) {
     if (msg.role === 'user') {
-      const isVeryFirst =
-        messages.indexOf(msg) === messages.findIndex(m => m.role === 'user')
       const parts: GeminiPart[] = []
 
-      if (isVeryFirst) {
-        // First user message includes screenshot
+      if (!screenshotAttached) {
+        parts.push(sessionScreenshotPart)
+        screenshotAttached = true
+      }
+
+      if (msg.screenshotBase64) {
         parts.push({
-          inline_data: { mime_type: 'image/png', data: screenshotBase64 },
+          inline_data: { mime_type: 'image/png', data: msg.screenshotBase64 },
         })
       }
+
       parts.push({ text: msg.content })
       contents.push({ role: 'user', parts })
     } else {
@@ -76,20 +82,29 @@ function buildContents(
     }
   }
 
-  // Add current message
+  const isFirstUserMessage = !screenshotAttached
+  const hasNewScreenshot = !!currentMessageScreenshot
   const currentParts: GeminiPart[] = []
   if (isFirstUserMessage) {
+    currentParts.push(sessionScreenshotPart)
+  }
+  if (currentMessageScreenshot) {
     currentParts.push({
-      inline_data: { mime_type: 'image/png', data: screenshotBase64 },
+      inline_data: {
+        mime_type: 'image/png',
+        data: currentMessageScreenshot.imageBase64,
+      },
     })
   }
   currentParts.push({
-    text: buildUserPrompt(currentUserMessage, isFirstUserMessage),
+    text: buildUserPrompt(
+      currentUserMessage,
+      isFirstUserMessage,
+      hasNewScreenshot
+    ),
   })
   contents.push({ role: 'user', parts: currentParts })
 
-  // Gemini needs system prompt via system_instruction, not in contents
-  void difficulty
   return contents
 }
 
@@ -117,14 +132,15 @@ export async function streamGeminiResponse(
   currentUserMessage: string,
   difficulty: DifficultyLevel,
   onChunk: (text: string) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  currentMessageScreenshot?: ScreenshotAttachment
 ): Promise<StreamResult> {
   const apiKey = getApiKey()
   const contents = buildContents(
     screenshotBase64,
     messages,
     currentUserMessage,
-    difficulty
+    currentMessageScreenshot
   )
 
   const url = `${GEMINI_API_BASE}/models/${MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`
@@ -135,8 +151,11 @@ export async function streamGeminiResponse(
     },
     contents,
     generationConfig: {
-      maxOutputTokens: MAX_TOKENS,
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
       temperature: 0.7,
+      thinkingConfig: {
+        thinkingBudget: THINKING_BUDGET,
+      },
     },
     safetySettings: [
       {
@@ -175,12 +194,11 @@ export async function streamGeminiResponse(
     })
 
     if (!response.ok) {
-      const errorBody = await response.text()
+      const errorBody = (await response.text()).slice(0, 500)
       logger.error('Gemini API error', {
         status: response.status,
         body: errorBody,
       })
-      // Show user-friendly message, not raw API response
       const userMessage = getUserFacingError(response.status)
       throw new Error(userMessage)
     }
@@ -223,10 +241,16 @@ export async function streamGeminiResponse(
           }
 
           const candidate = chunk.candidates?.[0]
-          const text = candidate?.content?.parts?.[0]?.text
-          if (text) {
-            fullText += text
-            onChunk(text)
+          const parts = candidate?.content?.parts
+          if (parts) {
+            for (const part of parts) {
+              // Filter out thinking/reasoning parts — only show response text
+              if (part.thought) continue
+              if (part.text) {
+                fullText += part.text
+                onChunk(part.text)
+              }
+            }
           }
 
           const reason = candidate?.finishReason

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import type { DifficultyLevel } from '@/features/chat/stores/chatStore'
-import { isDifficultyLevel } from '@/lib/store-validation'
+import type { DifficultyLevel } from '@/lib/schemas'
+import { SettingsPersistedSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 
 interface SettingsState {
@@ -36,27 +36,16 @@ export const useSettingsStore = create<SettingsState>()(
         merge: (persisted: unknown, current: SettingsState): SettingsState => {
           if (typeof persisted !== 'object' || persisted === null)
             return current
-          const p = persisted as Record<string, unknown>
 
-          const difficulty = isDifficultyLevel(p.difficulty)
-            ? p.difficulty
-            : current.difficulty
-          const apiKeyConfigured =
-            typeof p.apiKeyConfigured === 'boolean'
-              ? p.apiKeyConfigured
-              : current.apiKeyConfigured
-
-          if (
-            !isDifficultyLevel(p.difficulty) ||
-            typeof p.apiKeyConfigured !== 'boolean'
-          ) {
-            logger.warn(
-              'Rehydration: invalid settings data, using defaults for invalid fields',
-              { difficulty: p.difficulty, apiKeyConfigured: p.apiKeyConfigured }
-            )
+          const result = SettingsPersistedSchema.partial().safeParse(persisted)
+          if (!result.success) {
+            logger.warn('Rehydration: invalid settings data, using defaults', {
+              errors: result.error.flatten().fieldErrors,
+            })
+            return current
           }
 
-          return { ...current, difficulty, apiKeyConfigured }
+          return { ...current, ...result.data }
         },
       }
     ),

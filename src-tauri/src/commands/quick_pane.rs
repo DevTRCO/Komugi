@@ -51,6 +51,8 @@ tauri_panel! {
 /// Creates the quick pane window at app startup.
 /// Must be called from the main thread (e.g., in setup()).
 /// The window starts hidden and is shown via show_quick_pane command.
+/// Currently unused: disabled due to NSPanel KVO crash. Kept for future re-enable.
+#[allow(dead_code)]
 pub fn init_quick_pane(app: &AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
@@ -229,34 +231,43 @@ fn is_quick_pane_visible(app: &AppHandle) -> bool {
 }
 
 /// Shows the quick pane window and makes it the key window (for keyboard input).
+/// Returns Ok silently if the panel was never initialized (disabled for KVO crash workaround).
 #[tauri::command]
 #[specta::specta]
 pub fn show_quick_pane(app: AppHandle) -> Result<(), String> {
-    log::info!("Showing quick pane window");
-
-    position_quick_pane_on_cursor_monitor(&app);
-
     #[cfg(target_os = "macos")]
     {
-        let panel = app
-            .get_webview_panel(QUICK_PANE_LABEL)
-            .map_err(|e| format!("Quick pane panel not found: {e:?}"))?;
-        panel.show_and_make_key();
-        log::debug!("Quick pane panel shown (macOS)");
+        match app.get_webview_panel(QUICK_PANE_LABEL) {
+            Ok(panel) => {
+                position_quick_pane_on_cursor_monitor(&app);
+                panel.show_and_make_key();
+                log::debug!("Quick pane panel shown (macOS)");
+            }
+            Err(_) => {
+                log::debug!("Quick pane not initialized, skipping show");
+                return Ok(());
+            }
+        }
     }
 
     #[cfg(not(target_os = "macos"))]
     {
-        let window = app.get_webview_window(QUICK_PANE_LABEL).ok_or_else(|| {
-            "Quick pane window not found - was init_quick_pane called at startup?".to_string()
-        })?;
-        window
-            .show()
-            .map_err(|e| format!("Failed to show window: {e}"))?;
-        window
-            .set_focus()
-            .map_err(|e| format!("Failed to focus window: {e}"))?;
-        log::debug!("Quick pane window shown");
+        match app.get_webview_window(QUICK_PANE_LABEL) {
+            Some(window) => {
+                position_quick_pane_on_cursor_monitor(&app);
+                window
+                    .show()
+                    .map_err(|e| format!("Failed to show window: {e}"))?;
+                window
+                    .set_focus()
+                    .map_err(|e| format!("Failed to focus window: {e}"))?;
+                log::debug!("Quick pane window shown");
+            }
+            None => {
+                log::debug!("Quick pane not initialized, skipping show");
+                return Ok(());
+            }
+        }
     }
 
     Ok(())
@@ -264,23 +275,22 @@ pub fn show_quick_pane(app: AppHandle) -> Result<(), String> {
 
 /// Dismisses the quick pane window.
 /// On macOS, resigns key window status before hiding to avoid activating main window.
+/// Returns Ok silently if the panel was never initialized.
 #[tauri::command]
 #[specta::specta]
 pub fn dismiss_quick_pane(app: AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
         if let Ok(panel) = app.get_webview_panel(QUICK_PANE_LABEL) {
-            // Guard: resign_key_window triggers blur event which calls dismiss again
             if !panel.is_visible() {
                 return Ok(());
             }
             log::info!("Dismissing quick pane window");
-            // Resign key window BEFORE hiding to prevent macOS from
-            // activating our main window (which would cause space switching)
             panel.resign_key_window();
             panel.hide();
             log::debug!("Quick pane panel dismissed (macOS)");
         }
+        // No panel found = not initialized, silently return Ok
     }
 
     #[cfg(not(target_os = "macos"))]
@@ -288,7 +298,6 @@ pub fn dismiss_quick_pane(app: AppHandle) -> Result<(), String> {
         if let Some(window) = app.get_webview_window(QUICK_PANE_LABEL) {
             let is_visible = window.is_visible().unwrap_or(false);
             if !is_visible {
-                log::debug!("Quick pane already hidden, skipping");
                 return Ok(());
             }
             log::info!("Dismissing quick pane window");
@@ -297,17 +306,17 @@ pub fn dismiss_quick_pane(app: AppHandle) -> Result<(), String> {
                 .map_err(|e| format!("Failed to hide window: {e}"))?;
             log::debug!("Quick pane window hidden");
         }
+        // No window found = not initialized, silently return Ok
     }
 
     Ok(())
 }
 
 /// Toggles the quick pane window visibility.
+/// Returns Ok silently if the panel was never initialized.
 #[tauri::command]
 #[specta::specta]
 pub fn toggle_quick_pane(app: AppHandle) -> Result<(), String> {
-    log::info!("Toggling quick pane window");
-
     if is_quick_pane_visible(&app) {
         dismiss_quick_pane(app)
     } else {

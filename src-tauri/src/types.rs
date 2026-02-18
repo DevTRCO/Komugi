@@ -9,10 +9,13 @@ use std::sync::LazyLock;
 pub const DEFAULT_QUICK_PANE_SHORTCUT: &str = "CommandOrControl+Shift+.";
 
 /// Default shortcut for fullscreen screenshot capture
-pub const DEFAULT_FULLSCREEN_SHORTCUT: &str = "CommandOrControl+Shift+1";
+pub const DEFAULT_FULLSCREEN_SHORTCUT: &str = "CommandOrControl+Shift+9";
 
 /// Default shortcut for area selection screenshot
-pub const DEFAULT_AREA_SHORTCUT: &str = "CommandOrControl+Shift+2";
+pub const DEFAULT_AREA_SHORTCUT: &str = "CommandOrControl+Shift+0";
+
+/// Default shortcut for window selection screenshot
+pub const DEFAULT_WINDOW_SELECT_SHORTCUT: &str = "CommandOrControl+Shift+8";
 
 /// Maximum size for recovery data files (10MB)
 pub const MAX_RECOVERY_DATA_BYTES: u32 = 10_485_760;
@@ -45,6 +48,9 @@ pub struct AppPreferences {
     /// Global shortcut for area selection screenshot (e.g., "CommandOrControl+Shift+2")
     /// If None, uses the default shortcut
     pub area_screenshot_shortcut: Option<String>,
+    /// Global shortcut for window selection screenshot (e.g., "CommandOrControl+Shift+8")
+    /// If None, uses the default shortcut
+    pub window_screenshot_shortcut: Option<String>,
 }
 
 impl Default for AppPreferences {
@@ -55,8 +61,30 @@ impl Default for AppPreferences {
             language: None,                       // None means use system locale
             fullscreen_screenshot_shortcut: None, // None means use default
             area_screenshot_shortcut: None,       // None means use default
+            window_screenshot_shortcut: None,     // None means use default
         }
     }
+}
+
+// ============================================================================
+// Window Selection Types
+// ============================================================================
+
+/// Bounds of a visible window, relative to the monitor origin (in points).
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct WindowBounds {
+    /// X position relative to monitor origin (points)
+    pub x: f64,
+    /// Y position relative to monitor origin (points)
+    pub y: f64,
+    /// Width in points
+    pub width: f64,
+    /// Height in points
+    pub height: f64,
+    /// Application name (e.g., "Safari", "Finder")
+    pub owner_name: String,
+    /// Window title (may be empty)
+    pub window_name: String,
 }
 
 // ============================================================================
@@ -91,6 +119,67 @@ impl std::fmt::Display for RecoveryError {
             RecoveryError::ParseError { message } => write!(f, "Parse error: {message}"),
         }
     }
+}
+
+// ============================================================================
+// History Types
+// ============================================================================
+
+/// Error types for history/database operations
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[serde(tag = "type")]
+pub enum HistoryError {
+    /// Database operation failed
+    DatabaseError { message: String },
+    /// Session not found
+    NotFound { id: String },
+}
+
+impl std::fmt::Display for HistoryError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            HistoryError::DatabaseError { message } => write!(f, "Database error: {message}"),
+            HistoryError::NotFound { id } => write!(f, "Session not found: {id}"),
+        }
+    }
+}
+
+/// A full session with screenshot and all messages (for load/save)
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct StoredSession {
+    pub id: String,
+    pub screenshot_base64: String,
+    pub screenshot_width: u32,
+    pub screenshot_height: u32,
+    pub difficulty: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub messages: Vec<StoredMessage>,
+}
+
+/// Lightweight session summary for sidebar listing (no screenshot)
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct StoredSessionSummary {
+    pub id: String,
+    pub preview: String,
+    pub message_count: u32,
+    pub difficulty: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+/// A single chat message stored in the database
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct StoredMessage {
+    pub id: String,
+    pub session_id: String,
+    pub role: String,
+    pub content: String,
+    pub timestamp: i64,
+    pub sort_order: u32,
+    pub screenshot_base64: Option<String>,
+    pub screenshot_width: Option<u32>,
+    pub screenshot_height: Option<u32>,
 }
 
 // ============================================================================

@@ -73,14 +73,32 @@ export async function startAreaSelection(): Promise<void> {
 }
 
 /**
+ * Starts the window selection flow.
+ */
+export async function startWindowSelection(): Promise<void> {
+  const { setIsCapturing, setLastError } = useScreenshotStore.getState()
+
+  setIsCapturing(true)
+
+  try {
+    const result = await commands.startWindowSelection()
+
+    if (result.status === 'error') {
+      logger.error('Window selection failed to start', { error: result.error })
+      setLastError('Failed to start window selection')
+    }
+    // isCapturing stays true until the selection is completed or cancelled
+  } catch (error) {
+    logger.error('Window selection threw', { error })
+    setLastError('Failed to start window selection')
+  }
+}
+
+/**
  * Checks if screen recording permission is granted.
  */
 export async function checkPermission(): Promise<boolean> {
-  const result = await commands.checkScreenRecordingPermission()
-  if (result.status === 'ok') {
-    return result.data
-  }
-  return false
+  return commands.checkScreenRecordingPermission()
 }
 
 /**
