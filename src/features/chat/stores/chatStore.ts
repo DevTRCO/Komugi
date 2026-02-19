@@ -57,6 +57,8 @@ interface ChatState {
   setPendingScreenshot: (screenshot: ScreenshotAttachment) => void
   clearPendingScreenshot: () => void
   setScreenshotDecisionPending: (pending: boolean) => void
+  /** Pure state mutation: truncate messages after target, replace target content (ARCH-1) */
+  truncateAndReplace: (messageId: string, newContent: string) => void
 }
 
 function getActiveSession(state: ChatState): ChatSession | null {
@@ -297,6 +299,38 @@ export const useChatStore = create<ChatState>()(
           undefined,
           'setScreenshotDecisionPending'
         ),
+
+      truncateAndReplace: (messageId, newContent) => {
+        const state = get()
+        const session = getActiveSession(state)
+        if (!session) return
+
+        const target = session.messages.find(
+          m => m.id === messageId && m.role === 'user'
+        )
+        if (!target) return
+
+        const msgIndex = session.messages.indexOf(target)
+        const kept = session.messages.slice(0, msgIndex)
+        const updated: ChatMessage = {
+          ...target,
+          content: newContent,
+          timestamp: Date.now(),
+        }
+
+        set(
+          {
+            sessions: updateSession(state.sessions, session.id, s => ({
+              ...s,
+              messages: [...kept, updated],
+            })),
+            streamingContent: '',
+            lastError: null,
+          },
+          undefined,
+          'truncateAndReplace'
+        )
+      },
     }),
     { name: 'chat-store' }
   )

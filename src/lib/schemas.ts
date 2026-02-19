@@ -13,4 +13,5 @@ export type MessageRole = z.infer<typeof MessageRoleSchema>
 export const SettingsPersistedSchema = z.object({
   difficulty: DifficultyLevelSchema,
   apiKeyConfigured: z.boolean(),
+  historyRetentionDays: z.number().int().min(0).max(365),
 })

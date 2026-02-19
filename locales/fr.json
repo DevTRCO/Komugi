@@ -40,6 +40,16 @@
   "preferences.appearance.languageDescription": "Choisissez votre langue d'affichage préférée",
   "preferences.appearance.language.system": "Système",
 
+  "preferences.shortcuts.description": "Personnaliser les raccourcis clavier globaux pour la capture d'écran.",
+  "preferences.shortcuts.screenshotTitle": "Raccourcis de capture",
+  "preferences.shortcuts.navigationTitle": "Navigation",
+  "preferences.shortcuts.fullscreen": "Capture plein écran",
+  "preferences.shortcuts.fullscreenDescription": "Capturer l'écran entier",
+  "preferences.shortcuts.area": "Sélection de zone",
+  "preferences.shortcuts.areaDescription": "Sélectionner une zone de l'écran à capturer",
+  "preferences.shortcuts.window": "Sélection de fenêtre",
+  "preferences.shortcuts.windowDescription": "Sélectionner une fenêtre à capturer",
+
   "preferences.advanced.title": "Paramètres avancés d'exemple",
   "preferences.advanced.toggle": "Bascule avancée d'exemple",
   "preferences.advanced.toggleDescription": "Ceci est un exemple de paramètre de bascule avancé (non persisté)",

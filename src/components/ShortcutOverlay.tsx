@@ -1,5 +1,8 @@
+import { useQuery } from '@tanstack/react-query'
 import { useUIStore } from '@/store/ui-store'
-import { SHORTCUT_GROUPS } from '@/lib/constants/shortcuts'
+import { NAVIGATION_SHORTCUTS } from '@/lib/constants/shortcuts'
+import { usePreferences } from '@/services/preferences'
+import { commands } from '@/lib/tauri-bindings'
 import {
   Dialog,
   DialogContent,
@@ -8,9 +11,61 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
+/**
+ * Parses a Tauri shortcut string into display keys.
+ * e.g. "CommandOrControl+Shift+9" → ["Cmd", "Shift", "9"]
+ */
+function parseShortcutToKeys(shortcut: string): readonly string[] {
+  return shortcut.split('+').map(part => {
+    if (part === 'CommandOrControl') return 'Cmd'
+    return part
+  })
+}
+
 export function ShortcutOverlay() {
   const open = useUIStore(state => state.shortcutOverlayOpen)
   const setOpen = useUIStore(state => state.setShortcutOverlayOpen)
+
+  const { data: preferences } = usePreferences()
+  const { data: defaults } = useQuery({
+    queryKey: ['default-screenshot-shortcuts'],
+    queryFn: () => commands.getDefaultScreenshotShortcuts(),
+    staleTime: Infinity,
+  })
+
+  // F3 fix: fall back to defaults, then to hardcoded last resort
+  const fullscreenShortcut =
+    preferences?.fullscreen_screenshot_shortcut ??
+    defaults?.fullscreen ??
+    'CommandOrControl+Shift+9'
+  const areaShortcut =
+    preferences?.area_screenshot_shortcut ??
+    defaults?.area ??
+    'CommandOrControl+Shift+0'
+  const windowShortcut =
+    preferences?.window_screenshot_shortcut ??
+    defaults?.window ??
+    'CommandOrControl+Shift+8'
+
+  const screenshotShortcuts = [
+    {
+      keys: parseShortcutToKeys(fullscreenShortcut),
+      description: 'Fullscreen screenshot',
+    },
+    {
+      keys: parseShortcutToKeys(areaShortcut),
+      description: 'Area selection screenshot',
+    },
+    {
+      keys: parseShortcutToKeys(windowShortcut),
+      description: 'Window selection screenshot',
+    },
+  ]
+
+  const groups = [
+    { title: 'Screenshots', shortcuts: screenshotShortcuts },
+    { title: 'Navigation', shortcuts: NAVIGATION_SHORTCUTS },
+  ]
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -23,7 +78,7 @@ export function ShortcutOverlay() {
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          {SHORTCUT_GROUPS.map(group => (
+          {groups.map(group => (
             <div key={group.title}>
               <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {group.title}

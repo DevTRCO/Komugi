@@ -18,8 +18,8 @@ use specta::Type;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::types::{
-    WindowBounds, DEFAULT_AREA_SHORTCUT, DEFAULT_FULLSCREEN_SHORTCUT,
-    DEFAULT_WINDOW_SELECT_SHORTCUT,
+    ScreenshotShortcutDefaults, ScreenshotShortcutKind, WindowBounds, DEFAULT_AREA_SHORTCUT,
+    DEFAULT_FULLSCREEN_SHORTCUT, DEFAULT_WINDOW_SELECT_SHORTCUT,
 };
 
 // ============================================================================
@@ -136,8 +136,34 @@ fn ensure_screen_recording_permission() -> Result<(), ScreenshotError> {
 // Image Encoding (cross-platform — uses `image` crate only)
 // ============================================================================
 
+/// Maximum longest edge for screenshots (Gemini's optimal resolution).
+const MAX_SCREENSHOT_EDGE: u32 = 1568;
+
+/// Resizes image if longest edge exceeds MAX_SCREENSHOT_EDGE, maintaining aspect ratio.
+fn maybe_resize(image: &image::RgbaImage) -> std::borrow::Cow<'_, image::RgbaImage> {
+    let w = image.width();
+    let h = image.height();
+    let longest = w.max(h);
+
+    if longest <= MAX_SCREENSHOT_EDGE {
+        return std::borrow::Cow::Borrowed(image);
+    }
+
+    let scale = MAX_SCREENSHOT_EDGE as f64 / longest as f64;
+    let new_w = (w as f64 * scale).round() as u32;
+    let new_h = (h as f64 * scale).round() as u32;
+
+    log::info!("Resizing screenshot from {w}x{h} to {new_w}x{new_h}");
+    let resized =
+        image::imageops::resize(image, new_w, new_h, image::imageops::FilterType::Lanczos3);
+    std::borrow::Cow::Owned(resized)
+}
+
 /// Encodes an RgbaImage to base64 PNG and wraps it in a ScreenshotResult.
+/// Automatically resizes to max 1568px longest edge for optimal Gemini API usage and storage.
 fn encode_image_to_base64(image: &image::RgbaImage) -> Result<ScreenshotResult, ScreenshotError> {
+    let image = maybe_resize(image);
+
     let mut png_bytes: Vec<u8> = Vec::new();
     let cursor = Cursor::new(&mut png_bytes);
     let encoder = PngEncoder::new(cursor);
@@ -762,12 +788,18 @@ static CURRENT_FULLSCREEN_SHORTCUT: Mutex<Option<String>> = Mutex::new(None);
 static CURRENT_AREA_SHORTCUT: Mutex<Option<String>> = Mutex::new(None);
 static CURRENT_WINDOW_SELECT_SHORTCUT: Mutex<Option<String>> = Mutex::new(None);
 
-/// Registers both screenshot global shortcuts. Called from setup().
+/// Registers all screenshot global shortcuts. Called from setup().
+/// Accepts optional custom shortcuts; falls back to defaults when None.
 #[cfg(desktop)]
-pub fn register_screenshot_shortcuts(app: &AppHandle) -> Result<(), String> {
+pub fn register_screenshot_shortcuts(
+    app: &AppHandle,
+    fullscreen: Option<&str>,
+    area: Option<&str>,
+    window: Option<&str>,
+) -> Result<(), String> {
     register_shortcut(
         app,
-        DEFAULT_FULLSCREEN_SHORTCUT,
+        fullscreen.unwrap_or(DEFAULT_FULLSCREEN_SHORTCUT),
         &CURRENT_FULLSCREEN_SHORTCUT,
         "Fullscreen screenshot",
         |handle| {
@@ -781,7 +813,7 @@ pub fn register_screenshot_shortcuts(app: &AppHandle) -> Result<(), String> {
     )?;
     register_shortcut(
         app,
-        DEFAULT_AREA_SHORTCUT,
+        area.unwrap_or(DEFAULT_AREA_SHORTCUT),
         &CURRENT_AREA_SHORTCUT,
         "Area selection",
         |handle| {
@@ -794,7 +826,7 @@ pub fn register_screenshot_shortcuts(app: &AppHandle) -> Result<(), String> {
     )?;
     register_shortcut(
         app,
-        DEFAULT_WINDOW_SELECT_SHORTCUT,
+        window.unwrap_or(DEFAULT_WINDOW_SELECT_SHORTCUT),
         &CURRENT_WINDOW_SELECT_SHORTCUT,
         "Window selection",
         |handle| {
@@ -807,6 +839,96 @@ pub fn register_screenshot_shortcuts(app: &AppHandle) -> Result<(), String> {
     )?;
     log::info!("Screenshot shortcuts registered");
     Ok(())
+}
+
+/// Returns the default screenshot shortcuts for frontend display.
+#[tauri::command]
+#[specta::specta]
+pub fn get_default_screenshot_shortcuts() -> ScreenshotShortcutDefaults {
+    ScreenshotShortcutDefaults {
+        fullscreen: DEFAULT_FULLSCREEN_SHORTCUT.to_string(),
+        area: DEFAULT_AREA_SHORTCUT.to_string(),
+        window: DEFAULT_WINDOW_SELECT_SHORTCUT.to_string(),
+    }
+}
+
+/// Updates a single screenshot shortcut. Pass None to reset to default.
+/// Each kind has its own inline closure matching the register_screenshot_shortcuts pattern (F1 fix).
+#[tauri::command]
+#[specta::specta]
+pub fn update_screenshot_shortcut(
+    app: AppHandle,
+    kind: ScreenshotShortcutKind,
+    shortcut: Option<String>,
+) -> Result<(), String> {
+    #[cfg(desktop)]
+    {
+        match kind {
+            ScreenshotShortcutKind::Fullscreen => {
+                let sc = shortcut.as_deref().unwrap_or(DEFAULT_FULLSCREEN_SHORTCUT);
+                log::info!("Updating fullscreen screenshot shortcut to: {sc}");
+                register_shortcut(
+                    &app,
+                    sc,
+                    &CURRENT_FULLSCREEN_SHORTCUT,
+                    "Fullscreen screenshot",
+                    |handle| {
+                        tauri::async_runtime::spawn(async move {
+                            match capture_fullscreen(handle).await {
+                                Ok(r) => {
+                                    log::info!("Screenshot captured: {}x{}", r.width, r.height)
+                                }
+                                Err(e) => log::error!("Screenshot capture failed: {e}"),
+                            }
+                        });
+                    },
+                )
+            }
+            ScreenshotShortcutKind::Area => {
+                let sc = shortcut.as_deref().unwrap_or(DEFAULT_AREA_SHORTCUT);
+                log::info!("Updating area screenshot shortcut to: {sc}");
+                register_shortcut(
+                    &app,
+                    sc,
+                    &CURRENT_AREA_SHORTCUT,
+                    "Area selection",
+                    |handle| {
+                        tauri::async_runtime::spawn(async move {
+                            if let Err(e) = start_area_selection(handle).await {
+                                log::error!("Area selection failed: {e}");
+                            }
+                        });
+                    },
+                )
+            }
+            ScreenshotShortcutKind::Window => {
+                let sc = shortcut
+                    .as_deref()
+                    .unwrap_or(DEFAULT_WINDOW_SELECT_SHORTCUT);
+                log::info!("Updating window screenshot shortcut to: {sc}");
+                register_shortcut(
+                    &app,
+                    sc,
+                    &CURRENT_WINDOW_SELECT_SHORTCUT,
+                    "Window selection",
+                    |handle| {
+                        tauri::async_runtime::spawn(async move {
+                            if let Err(e) = start_window_selection(handle).await {
+                                log::error!("Window selection failed: {e}");
+                            }
+                        });
+                    },
+                )
+            }
+        }
+    }
+
+    #[cfg(not(desktop))]
+    {
+        let _ = (app, kind, shortcut);
+        log::warn!("Global shortcuts not supported on this platform");
+        Ok(())
+    }
 }
 
 /// Generic shortcut registration: unregisters old shortcut, registers new one with callback.

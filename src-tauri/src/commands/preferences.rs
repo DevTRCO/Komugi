@@ -21,22 +21,51 @@ fn get_preferences_path(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(app_data_dir.join("preferences.json"))
 }
 
+/// Loads preferences from disk at startup, returning defaults on any failure.
+/// Used before the full TanStack Query preferences system is available.
+fn load_prefs_from_disk(app: &AppHandle) -> AppPreferences {
+    let path = match get_preferences_path(app) {
+        Ok(p) => p,
+        Err(e) => {
+            log::warn!("Failed to get preferences path: {e}");
+            return AppPreferences::default();
+        }
+    };
+    if !path.exists() {
+        return AppPreferences::default();
+    }
+    let contents = match std::fs::read_to_string(&path) {
+        Ok(c) => c,
+        Err(e) => {
+            log::warn!("Failed to read preferences: {e}");
+            return AppPreferences::default();
+        }
+    };
+    serde_json::from_str(&contents).unwrap_or_else(|e| {
+        log::warn!("Failed to parse preferences: {e}");
+        AppPreferences::default()
+    })
+}
+
 /// Load the saved quick pane shortcut from preferences, returning None on any failure.
 /// Used at startup before the full preferences system is available.
 /// Currently unused: Quick Pane disabled due to NSPanel KVO crash.
 #[allow(dead_code)]
 pub fn load_quick_pane_shortcut(app: &AppHandle) -> Option<String> {
-    let path = get_preferences_path(app).ok()?;
-    if !path.exists() {
-        return None;
-    }
-    let contents = std::fs::read_to_string(&path)
-        .inspect_err(|e| log::warn!("Failed to read preferences: {e}"))
-        .ok()?;
-    let prefs: AppPreferences = serde_json::from_str(&contents)
-        .inspect_err(|e| log::warn!("Failed to parse preferences: {e}"))
-        .ok()?;
-    prefs.quick_pane_shortcut
+    load_prefs_from_disk(app).quick_pane_shortcut
+}
+
+/// Load the saved screenshot shortcuts from preferences for startup registration.
+/// Returns (fullscreen, area, window) — each None means use default.
+pub fn load_screenshot_shortcuts(
+    app: &AppHandle,
+) -> (Option<String>, Option<String>, Option<String>) {
+    let prefs = load_prefs_from_disk(app);
+    (
+        prefs.fullscreen_screenshot_shortcut,
+        prefs.area_screenshot_shortcut,
+        prefs.window_screenshot_shortcut,
+    )
 }
 
 /// Simple greeting command for demonstration purposes.

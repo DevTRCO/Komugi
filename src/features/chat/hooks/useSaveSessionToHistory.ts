@@ -19,28 +19,49 @@ export function useSaveSessionToHistory() {
       const prevCounts = prevMessagesCountRef.current
 
       for (const session of state.sessions) {
-        const prevCount = prevCounts.get(session.id) ?? 0
-
-        if (prevCount === 0 && session.messages.length === 0) {
-          saveFullSession(session)
-          prevCounts.set(session.id, 0)
-        } else if (session.messages.length > prevCount) {
-          const newMessages = session.messages.slice(prevCount)
-          saveMessages(session.id, newMessages, prevCount)
-          prevCounts.set(session.id, session.messages.length)
-        }
+        syncSessionToHistory(session, prevCounts)
       }
 
       const currentIds = new Set(state.sessions.map(s => s.id))
       for (const id of prevCounts.keys()) {
-        if (!currentIds.has(id)) {
-          prevCounts.delete(id)
-        }
+        if (!currentIds.has(id)) prevCounts.delete(id)
       }
     })
 
     return unsubscribe
   }, [])
+}
+
+function syncSessionToHistory(
+  session: ChatSession,
+  prevCounts: Map<string, number>
+) {
+  const prevCount = prevCounts.get(session.id)
+  const msgCount = session.messages.length
+
+  // First encounter — track it, persist only if it has messages
+  if (prevCount === undefined) {
+    prevCounts.set(session.id, msgCount)
+    if (msgCount > 0) saveFullSession(session)
+    return
+  }
+
+  // Messages were truncated (edit/fork) — full re-save handles deletions (RISK-1)
+  if (msgCount < prevCount) {
+    saveFullSession(session)
+    prevCounts.set(session.id, msgCount)
+    return
+  }
+
+  if (msgCount === prevCount) return
+
+  // Draft→active (0→1+): save session row + messages in one transaction
+  if (prevCount === 0) {
+    saveFullSession(session)
+  } else {
+    saveMessages(session.id, session.messages.slice(prevCount), prevCount)
+  }
+  prevCounts.set(session.id, msgCount)
 }
 
 function toStoredSession(session: ChatSession): StoredSession {

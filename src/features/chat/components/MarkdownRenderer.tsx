@@ -11,9 +11,10 @@ interface MarkdownRendererProps {
   content: string
 }
 
-function CodeBlock({ children }: { children: string }) {
+function CodeBlock({ children }: { children: React.ReactNode }) {
   const [copied, setCopied] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const preRef = useRef<HTMLPreElement>(null)
 
   useEffect(() => {
     return () => {
@@ -22,8 +23,9 @@ function CodeBlock({ children }: { children: string }) {
   }, [])
 
   const handleCopy = async () => {
+    const text = preRef.current?.textContent ?? ''
     try {
-      await navigator.clipboard.writeText(children)
+      await navigator.clipboard.writeText(text)
       setCopied(true)
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => setCopied(false), 1500)
@@ -34,35 +36,23 @@ function CodeBlock({ children }: { children: string }) {
 
   return (
     <div className="group/code relative">
-      <pre>
-        <code>{children}</code>
-      </pre>
-      <button
-        onClick={handleCopy}
-        className="absolute top-2 right-2 rounded bg-muted/80 p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover/code:opacity-100"
-        aria-label="Copy code"
-      >
-        {copied ? <Check size={14} /> : <Copy size={14} />}
-      </button>
+      <div className="sticky top-2 z-10 pointer-events-none flex h-0 justify-end">
+        <button
+          onClick={handleCopy}
+          className="pointer-events-auto mr-2 mt-0 rounded bg-muted/80 p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover/code:opacity-100"
+          aria-label="Copy code"
+        >
+          {copied ? <Check size={14} /> : <Copy size={14} />}
+        </button>
+      </div>
+      <pre ref={preRef}>{children}</pre>
     </div>
   )
 }
 
-/** Recursively extract text content from React nodes (handles rehype-highlight spans) */
-function extractCodeText(node: React.ReactNode): string {
-  if (!node) return ''
-  if (typeof node === 'string') return node
-  if (typeof node === 'number') return String(node)
-  if (Array.isArray(node)) return node.map(extractCodeText).join('')
-
-  const elem = node as React.ReactElement<{ children?: React.ReactNode }>
-  if (elem?.props?.children) return extractCodeText(elem.props.children)
-  return ''
-}
-
 const markdownComponents: Partial<Components> = {
   pre({ children }) {
-    return <CodeBlock>{extractCodeText(children)}</CodeBlock>
+    return <CodeBlock>{children}</CodeBlock>
   },
   a({ href, children }) {
     return (

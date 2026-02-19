@@ -1,13 +1,41 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import en from '../../locales/en.json'
 import ar from '../../locales/ar.json'
+import de from '../../locales/de.json'
+import en from '../../locales/en.json'
+import es from '../../locales/es.json'
 import fr from '../../locales/fr.json'
+import hi from '../../locales/hi.json'
+import ja from '../../locales/ja.json'
+import ko from '../../locales/ko.json'
+import pt from '../../locales/pt.json'
+import zh from '../../locales/zh.json'
 
 const resources = {
-  en: { translation: en },
   ar: { translation: ar },
+  de: { translation: de },
+  en: { translation: en },
+  es: { translation: es },
   fr: { translation: fr },
+  hi: { translation: hi },
+  ja: { translation: ja },
+  ko: { translation: ko },
+  pt: { translation: pt },
+  zh: { translation: zh },
+}
+
+// Native display names for the language picker
+export const languageNames: Record<string, string> = {
+  ar: 'العربية',
+  de: 'Deutsch',
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  hi: 'हिन्दी',
+  ja: '日本語',
+  ko: '한국어',
+  pt: 'Português',
+  zh: '中文',
 }
 
 // RTL language detection (includes languages not yet in resources for future expansion)

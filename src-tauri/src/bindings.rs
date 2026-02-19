@@ -26,6 +26,8 @@ pub fn generate_bindings() -> Builder<tauri::Wry> {
         screenshot::cancel_area_selection,
         screenshot::start_window_selection,
         screenshot::get_pending_window_bounds,
+        screenshot::get_default_screenshot_shortcuts,
+        screenshot::update_screenshot_shortcut,
         screenshot::check_accessibility_permission,
         screenshot::open_accessibility_settings,
         history::history_save_session,
@@ -34,6 +36,8 @@ pub fn generate_bindings() -> Builder<tauri::Wry> {
         history::history_load_session,
         history::history_delete_session,
         history::history_clear_all,
+        history::history_search_sessions,
+        history::history_cleanup_old_sessions,
         url_fetch::fetch_url_content,
     ])
 }

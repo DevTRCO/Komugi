@@ -11,15 +11,8 @@ import {
 import { useTheme } from '@/hooks/use-theme'
 import { SettingsField, SettingsSection } from '../shared/SettingsComponents'
 import { usePreferences, useSavePreferences } from '@/services/preferences'
-import { availableLanguages } from '@/i18n'
+import { availableLanguages, languageNames } from '@/i18n'
 import { logger } from '@/lib/logger'
-
-// Language display names (native names)
-const languageNames: Record<string, string> = {
-  en: 'English',
-  fr: 'Français',
-  ar: 'العربية',
-}
 
 export function AppearancePane() {
   const { t, i18n } = useTranslation()

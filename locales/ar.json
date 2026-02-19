@@ -40,6 +40,16 @@
   "preferences.appearance.languageDescription": "اختر لغة العرض المفضلة لديك",
   "preferences.appearance.language.system": "افتراضي النظام",
 
+  "preferences.shortcuts.description": "تخصيص اختصارات لوحة المفاتيح العامة لالتقاط لقطات الشاشة.",
+  "preferences.shortcuts.screenshotTitle": "اختصارات لقطة الشاشة",
+  "preferences.shortcuts.navigationTitle": "التنقل",
+  "preferences.shortcuts.fullscreen": "لقطة شاشة كاملة",
+  "preferences.shortcuts.fullscreenDescription": "التقاط الشاشة بالكامل",
+  "preferences.shortcuts.area": "تحديد المنطقة",
+  "preferences.shortcuts.areaDescription": "تحديد منطقة من الشاشة لالتقاطها",
+  "preferences.shortcuts.window": "تحديد النافذة",
+  "preferences.shortcuts.windowDescription": "تحديد نافذة لالتقاطها",
+
   "preferences.advanced.title": "إعدادات متقدمة",
   "preferences.advanced.toggle": "تبديل متقدم",
   "preferences.advanced.toggleDescription": "هذا مثال على إعداد التبديل المتقدم (غير محفوظ)",

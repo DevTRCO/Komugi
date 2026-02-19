@@ -61,5 +61,11 @@ vi.mock('@/lib/tauri-bindings', () => ({
       .fn()
       .mockResolvedValue({ status: 'ok', data: null }),
     historyClearAll: vi.fn().mockResolvedValue({ status: 'ok', data: null }),
+    historySearchSessions: vi
+      .fn()
+      .mockResolvedValue({ status: 'ok', data: [] }),
+    historyCleanupOldSessions: vi
+      .fn()
+      .mockResolvedValue({ status: 'ok', data: 0 }),
   },
 }))

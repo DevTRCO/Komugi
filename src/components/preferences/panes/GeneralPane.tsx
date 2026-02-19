@@ -20,6 +20,9 @@ import type { DifficultyLevel } from '@/features/chat/stores/chatStore'
 export function GeneralPane() {
   const { t } = useTranslation()
   const difficulty = useSettingsStore(state => state.difficulty)
+  const historyRetentionDays = useSettingsStore(
+    state => state.historyRetentionDays
+  )
 
   // Load preferences for keyboard shortcuts
   const { data: preferences } = usePreferences()
@@ -80,6 +83,13 @@ export function GeneralPane() {
     }
   }
 
+  const handleRetentionChange = (value: string) => {
+    const days = parseInt(value, 10)
+    if (Number.isNaN(days)) return
+    const { setHistoryRetentionDays } = useSettingsStore.getState()
+    setHistoryRetentionDays(days)
+  }
+
   const handleDifficultyChange = (value: string) => {
     const validLevels: DifficultyLevel[] = [
       'beginner',
@@ -123,13 +133,41 @@ export function GeneralPane() {
             </SelectContent>
           </Select>
           <Label className="mt-1 block text-xs text-muted-foreground">
-            {difficulty === 'beginner' &&
-              t('preferences.general.difficulty.beginnerHint')}
-            {difficulty === 'intermediate' &&
-              t('preferences.general.difficulty.intermediateHint')}
-            {difficulty === 'advanced' &&
-              t('preferences.general.difficulty.advancedHint')}
+            {t(`preferences.general.difficulty.${difficulty}Hint`)}
           </Label>
+        </SettingsField>
+      </SettingsSection>
+
+      <SettingsSection title={t('preferences.general.history')}>
+        <SettingsField
+          label={t('preferences.general.historyRetention')}
+          description={t('preferences.general.historyRetentionDescription')}
+        >
+          <Select
+            value={String(historyRetentionDays)}
+            onValueChange={handleRetentionChange}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">
+                {t('preferences.general.historyRetention.7days')}
+              </SelectItem>
+              <SelectItem value="14">
+                {t('preferences.general.historyRetention.14days')}
+              </SelectItem>
+              <SelectItem value="30">
+                {t('preferences.general.historyRetention.30days')}
+              </SelectItem>
+              <SelectItem value="90">
+                {t('preferences.general.historyRetention.90days')}
+              </SelectItem>
+              <SelectItem value="0">
+                {t('preferences.general.historyRetention.forever')}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </SettingsField>
       </SettingsSection>
 

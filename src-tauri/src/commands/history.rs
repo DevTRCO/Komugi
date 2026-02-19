@@ -8,7 +8,9 @@ use std::sync::Mutex;
 use rusqlite::Connection;
 use tauri::Manager;
 
-use crate::types::{HistoryError, StoredMessage, StoredSession, StoredSessionSummary};
+use crate::types::{
+    validate_string_input, HistoryError, StoredMessage, StoredSession, StoredSessionSummary,
+};
 
 // ============================================================================
 // Database State (managed by Tauri)
@@ -125,6 +127,21 @@ fn with_db<T>(
     f(&conn).map_err(|e| HistoryError::DatabaseError {
         message: format!("{e}"),
     })
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/// Truncate a preview string to at most `max_chars` characters, appending "..." if truncated.
+fn truncate_preview(content: Option<String>, max_chars: usize) -> String {
+    let preview = content.unwrap_or_default();
+    if preview.chars().count() > max_chars {
+        let short: String = preview.chars().take(max_chars).collect();
+        format!("{short}...")
+    } else {
+        preview
+    }
 }
 
 // ============================================================================
@@ -263,22 +280,13 @@ pub fn history_list_sessions(
         )?;
 
         let rows = stmt.query_map(rusqlite::params![limit, offset], |row| {
-            let content: Option<String> = row.get(5)?;
-            let preview = content.unwrap_or_default();
-            let truncated: String = if preview.chars().count() > 80 {
-                let short: String = preview.chars().take(80).collect();
-                format!("{short}...")
-            } else {
-                preview
-            };
-
             Ok(StoredSessionSummary {
                 id: row.get(0)?,
                 difficulty: row.get(1)?,
                 created_at: row.get(2)?,
                 updated_at: row.get(3)?,
                 message_count: row.get(4)?,
-                preview: truncated,
+                preview: truncate_preview(row.get(5)?, 80),
             })
         })?;
 
@@ -381,5 +389,82 @@ pub fn history_clear_all(state: tauri::State<'_, DbState>) -> Result<(), History
     with_db(&state, |conn| {
         conn.execute_batch("DELETE FROM messages; DELETE FROM sessions;")?;
         Ok(())
+    })
+}
+
+/// Search sessions by message content. Returns summaries (no screenshot data).
+#[tauri::command]
+#[specta::specta]
+pub fn history_search_sessions(
+    state: tauri::State<'_, DbState>,
+    query: String,
+    limit: u32,
+    offset: u32,
+) -> Result<Vec<StoredSessionSummary>, HistoryError> {
+    validate_string_input(&query, 200, "Search query")
+        .map_err(|e| HistoryError::DatabaseError { message: e })?;
+
+    // Escape LIKE wildcards so user input is treated as literal text (RISK-4)
+    let escaped_query = query
+        .replace('\\', "\\\\")
+        .replace('%', "\\%")
+        .replace('_', "\\_");
+
+    with_db(&state, |conn| {
+        let mut stmt = conn.prepare(
+            "SELECT DISTINCT s.id, s.difficulty, s.created_at, s.updated_at,
+                    (SELECT COUNT(*) FROM messages m2 WHERE m2.session_id = s.id) as msg_count,
+                    (SELECT m3.content FROM messages m3 WHERE m3.session_id = s.id AND m3.role = 'user' ORDER BY m3.sort_order ASC LIMIT 1) as preview
+             FROM sessions s
+             INNER JOIN messages m ON m.session_id = s.id
+             WHERE m.content LIKE '%' || ?1 || '%' ESCAPE '\\'
+             ORDER BY s.created_at DESC
+             LIMIT ?2 OFFSET ?3",
+        )?;
+
+        let rows = stmt.query_map(rusqlite::params![escaped_query, limit, offset], |row| {
+            Ok(StoredSessionSummary {
+                id: row.get(0)?,
+                difficulty: row.get(1)?,
+                created_at: row.get(2)?,
+                updated_at: row.get(3)?,
+                message_count: row.get(4)?,
+                preview: truncate_preview(row.get(5)?, 80),
+            })
+        })?;
+
+        rows.collect()
+    })
+}
+
+/// Delete sessions older than `max_age_hours` (based on updated_at, not created_at — RISK-2).
+/// Returns the number of deleted sessions.
+#[tauri::command]
+#[specta::specta]
+pub fn history_cleanup_old_sessions(
+    state: tauri::State<'_, DbState>,
+    max_age_hours: u32,
+) -> Result<u32, HistoryError> {
+    with_db(&state, |conn| {
+        let cutoff_ms = {
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis() as i64)
+                .unwrap_or(0);
+            now - (max_age_hours as i64 * 3_600_000)
+        };
+
+        let count: u32 = conn.query_row(
+            "SELECT COUNT(*) FROM sessions WHERE updated_at < ?1",
+            [cutoff_ms],
+            |row| row.get(0),
+        )?;
+
+        if count > 0 {
+            log::info!("Cleaning up {count} sessions older than {max_age_hours}h");
+            conn.execute("DELETE FROM sessions WHERE updated_at < ?1", [cutoff_ms])?;
+        }
+
+        Ok(count)
     })
 }

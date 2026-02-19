@@ -227,6 +227,24 @@ async getPendingWindowBounds() : Promise<Result<WindowBounds[], ScreenshotError>
 }
 },
 /**
+ * Returns the default screenshot shortcuts for frontend display.
+ */
+async getDefaultScreenshotShortcuts() : Promise<ScreenshotShortcutDefaults> {
+    return await TAURI_INVOKE("get_default_screenshot_shortcuts");
+},
+/**
+ * Updates a single screenshot shortcut. Pass None to reset to default.
+ * Each kind has its own inline closure matching the register_screenshot_shortcuts pattern (F1 fix).
+ */
+async updateScreenshotShortcut(kind: ScreenshotShortcutKind, shortcut: string | null) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_screenshot_shortcut", { kind, shortcut }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Checks whether Accessibility permission is granted (needed for global shortcuts).
  */
 async checkAccessibilityPermission() : Promise<boolean> {
@@ -310,6 +328,29 @@ async historyClearAll() : Promise<Result<null, HistoryError>> {
 }
 },
 /**
+ * Search sessions by message content. Returns summaries (no screenshot data).
+ */
+async historySearchSessions(query: string, limit: number, offset: number) : Promise<Result<StoredSessionSummary[], HistoryError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("history_search_sessions", { query, limit, offset }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Delete sessions older than `max_age_hours` (based on updated_at, not created_at — RISK-2).
+ * Returns the number of deleted sessions.
+ */
+async historyCleanupOldSessions(maxAgeHours: number) : Promise<Result<number, HistoryError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("history_cleanup_old_sessions", { maxAgeHours }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Fetches a public URL and returns its content as plain text.
  */
 async fetchUrlContent(url: string) : Promise<Result<FetchedUrlContent, UrlFetchError>> {
@@ -362,6 +403,26 @@ area_screenshot_shortcut: string | null;
  * If None, uses the default shortcut
  */
 window_screenshot_shortcut: string | null }
+/**
+ * Successfully fetched and converted page content.
+ */
+export type FetchedUrlContent = { 
+/**
+ * The original URL that was fetched
+ */
+url: string; 
+/**
+ * Plain text extracted from the page
+ */
+text: string; 
+/**
+ * Page title if found
+ */
+title: string | null; 
+/**
+ * Whether the text was truncated to fit the limit
+ */
+truncated: boolean }
 /**
  * Error types for history/database operations
  */
@@ -448,13 +509,17 @@ height: number;
  */
 captured_at: string }
 /**
+ * Default shortcut values for all screenshot types.
+ */
+export type ScreenshotShortcutDefaults = { fullscreen: string; area: string; window: string }
+/**
+ * Identifies which screenshot shortcut to update.
+ */
+export type ScreenshotShortcutKind = "Fullscreen" | "Area" | "Window"
+/**
  * A single chat message stored in the database
  */
-export type StoredMessage = { id: string; session_id: string; role: string; content: string; timestamp: number; sort_order: number; 
-/**
- * Optional screenshot attached to this specific message (multi-screenshot sessions)
- */
-screenshot_base64: string | null; screenshot_width: number | null; screenshot_height: number | null }
+export type StoredMessage = { id: string; session_id: string; role: string; content: string; timestamp: number; sort_order: number; screenshot_base64: string | null; screenshot_width: number | null; screenshot_height: number | null }
 /**
  * A full session with screenshot and all messages (for load/save)
  */
@@ -464,45 +529,25 @@ export type StoredSession = { id: string; screenshot_base64: string; screenshot_
  */
 export type StoredSessionSummary = { id: string; preview: string; message_count: number; difficulty: string; created_at: number; updated_at: number }
 /**
- * Successfully fetched and converted page content.
- */
-export type FetchedUrlContent = {
-/**
- * The original URL that was fetched
- */
-url: string;
-/**
- * Plain text extracted from the page
- */
-text: string;
-/**
- * Page title if found
- */
-title: string | null;
-/**
- * Whether the text was truncated to fit the limit
- */
-truncated: boolean }
-/**
  * Typed errors for URL fetch operations.
  */
-export type UrlFetchError =
+export type UrlFetchError = 
 /**
  * URL failed validation (bad scheme, parse error)
  */
-{ type: "InvalidUrl"; message: string } |
+{ type: "InvalidUrl"; message: string } | 
 /**
  * URL points to a private/internal host
  */
-{ type: "BlockedUrl"; message: string } |
+{ type: "BlockedUrl"; message: string } | 
 /**
  * HTTP request failed
  */
-{ type: "FetchFailed"; message: string } |
+{ type: "FetchFailed"; message: string } | 
 /**
  * Request timed out
  */
-{ type: "Timeout" } |
+{ type: "Timeout" } | 
 /**
  * Response body exceeded size limit
  */

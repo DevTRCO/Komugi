@@ -7,6 +7,7 @@ import { TitleBar } from '@/components/titlebar/TitleBar'
 import { LeftSideBar } from './LeftSideBar'
 import { RightSideBar } from './RightSideBar'
 import { MainWindowContent } from './MainWindowContent'
+import { ScreenshotGallery } from '@/features/screenshot/components/ScreenshotGallery'
 import { CommandPalette } from '@/components/command-palette/CommandPalette'
 import { PreferencesDialog } from '@/components/preferences/PreferencesDialog'
 import { ShortcutOverlay } from '@/components/ShortcutOverlay'
@@ -71,7 +72,9 @@ export function MainWindow() {
             maxSize={LAYOUT.rightSidebar.max}
             className={cn(!rightSidebarVisible && 'hidden')}
           >
-            <RightSideBar />
+            <RightSideBar>
+              <ScreenshotGallery />
+            </RightSideBar>
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

@@ -67,6 +67,26 @@ impl Default for AppPreferences {
 }
 
 // ============================================================================
+// Screenshot Shortcut Types
+// ============================================================================
+
+/// Identifies which screenshot shortcut to update.
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub enum ScreenshotShortcutKind {
+    Fullscreen,
+    Area,
+    Window,
+}
+
+/// Default shortcut values for all screenshot types.
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct ScreenshotShortcutDefaults {
+    pub fullscreen: String,
+    pub area: String,
+    pub window: String,
+}
+
+// ============================================================================
 // Window Selection Types
 // ============================================================================
 

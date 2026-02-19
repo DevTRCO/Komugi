@@ -140,10 +140,17 @@ pub fn run() {
             // TODO: Re-enable once tauri-nspanel fixes the KVO crash.
             log::info!("Quick pane disabled (NSPanel KVO crash workaround)");
 
-            // Register screenshot capture shortcuts
+            // Register screenshot capture shortcuts (with saved custom shortcuts if any)
             #[cfg(desktop)]
             {
-                if let Err(e) = commands::screenshot::register_screenshot_shortcuts(app.handle()) {
+                let (fs_sc, area_sc, win_sc) =
+                    commands::preferences::load_screenshot_shortcuts(app.handle());
+                if let Err(e) = commands::screenshot::register_screenshot_shortcuts(
+                    app.handle(),
+                    fs_sc.as_deref(),
+                    area_sc.as_deref(),
+                    win_sc.as_deref(),
+                ) {
                     log::error!("Failed to register screenshot shortcuts: {e}");
                     // Non-fatal: app can still run without screenshot shortcuts
                 }

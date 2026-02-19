@@ -1,9 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useHistoryStore } from '../stores/historyStore'
 import { useChatStore } from '@/features/chat/stores/chatStore'
 import { commands } from '@/lib/tauri-bindings'
 import type { StoredMessage, StoredSession } from '@/lib/tauri-bindings'
 import type { ChatSession, ChatMessage } from '@/features/chat/stores/chatStore'
-import { Trash2, History, Loader2 } from 'lucide-react'
+import { Trash2, History, Loader2, Search, X } from 'lucide-react'
 import { DifficultyLevelSchema, MessageRoleSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 
@@ -54,6 +56,42 @@ function storedToChatSession(stored: StoredSession): ChatSession {
 export function HistorySidebar() {
   const sessions = useHistoryStore(state => state.sessions)
   const isLoading = useHistoryStore(state => state.isLoading)
+  const searchResults = useHistoryStore(state => state.searchResults)
+  const searchQuery = useHistoryStore(state => state.searchQuery)
+  const { t } = useTranslation()
+
+  const [localQuery, setLocalQuery] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
+  const handleSearchChange = (value: string) => {
+    setLocalQuery(value)
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    debounceRef.current = setTimeout(() => {
+      const { searchSessions, clearSearch } = useHistoryStore.getState()
+      if (value.trim()) {
+        void searchSessions(value.trim())
+      } else {
+        clearSearch()
+      }
+    }, 300)
+  }
+
+  const handleClearSearch = () => {
+    setLocalQuery('')
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    useHistoryStore.getState().clearSearch()
+  }
+
+  const displaySessions = searchResults ?? sessions
+  const isSearching = searchQuery.length > 0
 
   if (isLoading) {
     return (
@@ -64,23 +102,10 @@ export function HistorySidebar() {
     )
   }
 
-  if (sessions.length === 0) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
-        <History size={24} className="text-muted-foreground/50" />
-        <p className="text-sm text-muted-foreground">No sessions yet</p>
-        <p className="text-xs text-muted-foreground/70">
-          Your learning history will appear here
-        </p>
-      </div>
-    )
-  }
-
   const handleRestore = async (id: string) => {
     const { isGenerating } = useChatStore.getState()
     if (isGenerating) return
 
-    // Check if already loaded in chat
     const { sessions: chatSessions } = useChatStore.getState()
     if (chatSessions.some(s => s.id === id)) {
       useChatStore.getState().switchSession(id)
@@ -112,31 +137,78 @@ export function HistorySidebar() {
           {sessions.length} session{sessions.length !== 1 ? 's' : ''}
         </p>
       </div>
-      <div className="flex-1 overflow-y-auto">
-        {sessions.map(session => (
-          <button
-            key={session.id}
-            onClick={() => handleRestore(session.id)}
-            className="group flex w-full items-start gap-2 border-b border-border/50 px-3 py-2 text-start hover:bg-muted/50"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-foreground">
-                {session.preview}
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {session.message_count} messages &middot;{' '}
-                {formatDate(session.created_at)}
-              </p>
-            </div>
+
+      <div className="border-b border-border px-3 py-2">
+        <div className="relative">
+          <Search
+            size={14}
+            className="absolute top-1/2 left-2 -translate-y-1/2 text-muted-foreground"
+          />
+          <input
+            type="text"
+            value={localQuery}
+            onChange={e => handleSearchChange(e.target.value)}
+            placeholder={t('history.searchPlaceholder')}
+            className="h-7 w-full rounded border border-border bg-muted/50 pe-7 ps-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          />
+          {localQuery && (
             <button
-              onClick={e => handleRemove(session.id, e)}
-              className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-              aria-label="Remove session"
+              onClick={handleClearSearch}
+              className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
             >
-              <Trash2 size={14} />
+              <X size={12} />
             </button>
-          </button>
-        ))}
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {displaySessions.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+            {isSearching ? (
+              <>
+                <Search size={24} className="text-muted-foreground/50" />
+                <p className="text-sm text-muted-foreground">
+                  {t('history.noSearchResults')}
+                </p>
+              </>
+            ) : (
+              <>
+                <History size={24} className="text-muted-foreground/50" />
+                <p className="text-sm text-muted-foreground">No sessions yet</p>
+                <p className="text-xs text-muted-foreground/70">
+                  Your learning history will appear here
+                </p>
+              </>
+            )}
+          </div>
+        ) : (
+          displaySessions.map(session => (
+            <button
+              key={session.id}
+              onClick={() => handleRestore(session.id)}
+              className="group flex w-full items-start gap-2 border-b border-border/50 px-3 py-2 text-start hover:bg-muted/50"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-foreground">
+                  {session.preview}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {session.message_count} messages &middot;{' '}
+                  {formatDate(session.created_at)}
+                </p>
+              </div>
+              <button
+                onClick={e => handleRemove(session.id, e)}
+                className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                aria-label="Remove session"
+              >
+                <Trash2 size={14} />
+              </button>
+            </button>
+          ))
+        )}
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
 import { useChatStore, selectActiveSession } from '../stores/chatStore'
+import { useUIStore } from '@/store/ui-store'
 import { X } from 'lucide-react'
 
 interface ScreenshotPreviewProps {
@@ -10,13 +11,18 @@ export function ScreenshotPreview({ onClose }: ScreenshotPreviewProps) {
 
   if (!session) return null
 
+  const handleZoom = () => {
+    useUIStore.getState().openScreenshotZoom({ sessionId: session.id })
+  }
+
   return (
     <div className="relative border-b border-border bg-muted/30 p-3">
       <div className="mx-auto flex max-w-2xl items-start gap-3">
         <img
           src={`data:image/png;base64,${session.screenshotBase64}`}
           alt="Screenshot context"
-          className="h-20 w-auto max-w-[160px] rounded border border-border object-contain"
+          className="h-20 w-auto max-w-[160px] cursor-zoom-in rounded border border-border object-contain"
+          onClick={handleZoom}
         />
         <div className="flex-1 text-xs text-muted-foreground">
           <p>

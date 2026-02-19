@@ -9,9 +9,12 @@ interface SettingsState {
   difficulty: DifficultyLevel
   /** Whether the API key has been validated (key itself is in .env) */
   apiKeyConfigured: boolean
+  /** Number of days to keep history sessions (0 = keep forever) */
+  historyRetentionDays: number
 
   setDifficulty: (level: DifficultyLevel) => void
   setApiKeyConfigured: (configured: boolean) => void
+  setHistoryRetentionDays: (days: number) => void
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -20,6 +23,7 @@ export const useSettingsStore = create<SettingsState>()(
       set => ({
         difficulty: 'intermediate',
         apiKeyConfigured: false,
+        historyRetentionDays: 30,
 
         setDifficulty: level =>
           set({ difficulty: level }, undefined, 'setDifficulty'),
@@ -29,6 +33,13 @@ export const useSettingsStore = create<SettingsState>()(
             { apiKeyConfigured: configured },
             undefined,
             'setApiKeyConfigured'
+          ),
+
+        setHistoryRetentionDays: days =>
+          set(
+            { historyRetentionDays: days },
+            undefined,
+            'setHistoryRetentionDays'
           ),
       }),
       {

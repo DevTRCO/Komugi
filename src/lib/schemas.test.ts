@@ -42,11 +42,13 @@ describe('SettingsPersistedSchema', () => {
     const result = SettingsPersistedSchema.safeParse({
       difficulty: 'beginner',
       apiKeyConfigured: true,
+      historyRetentionDays: 30,
     })
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.difficulty).toBe('beginner')
       expect(result.data.apiKeyConfigured).toBe(true)
+      expect(result.data.historyRetentionDays).toBe(30)
     }
   })
 

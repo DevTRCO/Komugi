@@ -29,6 +29,15 @@
   "preferences.general.difficulty.intermediateHint": "Clear explanations with technical depth",
   "preferences.general.difficulty.advancedHint": "Concise, technical, focused on nuances",
 
+  "preferences.general.history": "History",
+  "preferences.general.historyRetention": "Retention Period",
+  "preferences.general.historyRetentionDescription": "Automatically delete sessions older than this",
+  "preferences.general.historyRetention.7days": "7 days",
+  "preferences.general.historyRetention.14days": "14 days",
+  "preferences.general.historyRetention.30days": "30 days",
+  "preferences.general.historyRetention.90days": "90 days",
+  "preferences.general.historyRetention.forever": "Keep forever",
+
   "preferences.general.keyboardShortcuts": "Keyboard Shortcuts",
   "preferences.general.quickPaneShortcut": "Quick Pane Shortcut",
   "preferences.general.quickPaneShortcutDescription": "Global keyboard shortcut to toggle the quick pane from any application",
@@ -43,6 +52,16 @@
   "preferences.appearance.language": "Language",
   "preferences.appearance.languageDescription": "Choose your preferred display language",
   "preferences.appearance.language.system": "System Default",
+
+  "preferences.shortcuts.description": "Customize global keyboard shortcuts for screenshot capture.",
+  "preferences.shortcuts.screenshotTitle": "Screenshot Shortcuts",
+  "preferences.shortcuts.navigationTitle": "Navigation",
+  "preferences.shortcuts.fullscreen": "Fullscreen Screenshot",
+  "preferences.shortcuts.fullscreenDescription": "Capture the entire screen",
+  "preferences.shortcuts.area": "Area Selection",
+  "preferences.shortcuts.areaDescription": "Select a region of the screen to capture",
+  "preferences.shortcuts.window": "Window Selection",
+  "preferences.shortcuts.windowDescription": "Select a window to capture",
 
   "preferences.advanced.title": "Advanced",
   "preferences.advanced.apiStatus": "API Configuration",
@@ -95,7 +114,16 @@
   "titlebar.hideRightSidebar": "Hide Right Sidebar",
   "titlebar.settings": "Settings",
 
+  "history.searchPlaceholder": "Search history...",
+  "history.noSearchResults": "No matching sessions",
+
   "chat.emptyState": "What do you want to know about this screenshot?",
+  "chat.editMessage": "Edit message",
+  "chat.editHint.save": "Enter to save",
+  "chat.editHint.cancel": "Escape to cancel",
+
+  "screenshots.title": "Your Screenshots",
+  "screenshots.emptyState": "Take a screenshot to get started",
 
   "screenshot.decision.title": "New screenshot captured",
   "screenshot.decision.addToSession": "Add to session",

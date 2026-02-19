@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useChatStore, selectActiveSession } from '../stores/chatStore'
 import { useSendMessage } from '@/features/ai'
+import { useEditMessage } from '../hooks/useEditMessage'
 import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
 import { StreamingMessage } from './StreamingMessage'
@@ -23,6 +24,7 @@ export function ChatPanel() {
   const isGenerating = useChatStore(state => state.isGenerating)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { send, abort } = useSendMessage()
+  const { editAndResend } = useEditMessage()
   const { t } = useTranslation()
 
   // Auto-scroll to bottom on new messages
@@ -55,7 +57,12 @@ export function ChatPanel() {
         )}
 
         {session.messages.map(message => (
-          <ChatMessage key={message.id} message={message} />
+          <ChatMessage
+            key={message.id}
+            message={message}
+            onEditSubmit={editAndResend}
+            editDisabled={isGenerating}
+          />
         ))}
 
         <StreamingMessage />

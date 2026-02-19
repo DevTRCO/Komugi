@@ -26,6 +26,8 @@ export type {
   RecoveryError,
   ScreenshotError,
   ScreenshotResult,
+  ScreenshotShortcutDefaults,
+  ScreenshotShortcutKind,
   HistoryError,
   StoredSession,
   StoredSessionSummary,
