@@ -64,8 +64,18 @@
   "preferences.shortcuts.windowDescription": "Select a window to capture",
 
   "preferences.advanced.title": "Advanced",
-  "preferences.advanced.apiStatus": "API Configuration",
-  "preferences.advanced.apiStatusDescription": "Gemini API key is configured via VITE_GEMINI_API_KEY in your .env file",
+  "preferences.advanced.apiKey": "Gemini API Key",
+  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyPlaceholder": "AIza...",
+  "preferences.advanced.apiSave": "Save",
+  "preferences.advanced.apiRemove": "Remove",
+  "preferences.advanced.apiConfigured": "API key configured",
+  "preferences.advanced.apiNotConfigured": "No API key configured",
+  "preferences.advanced.apiSaved": "API key saved to keychain",
+  "preferences.advanced.apiRemoved": "API key removed",
+  "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
+  "preferences.advanced.envKeyActive": "Using development key from environment",
+  "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "Enabled",
   "common.disabled": "Disabled",
@@ -121,6 +131,7 @@
   "chat.editMessage": "Edit message",
   "chat.editHint.save": "Enter to save",
   "chat.editHint.cancel": "Escape to cancel",
+  "chat.retrying": "Retrying (attempt {{attempt}}/2)...",
 
   "screenshots.title": "Your Screenshots",
   "screenshots.emptyState": "Take a screenshot to get started",
@@ -145,5 +156,18 @@
   "toast.error.windowMinimizeFailed": "Failed to minimize window: {{message}}",
   "toast.error.windowMaximizeFailed": "Failed to toggle maximize: {{message}}",
   "toast.error.fullscreenEnterFailed": "Failed to enter fullscreen: {{message}}",
-  "toast.error.fullscreenExitFailed": "Failed to exit fullscreen: {{message}}"
+  "toast.error.fullscreenExitFailed": "Failed to exit fullscreen: {{message}}",
+
+  "preferences.appearance.chatSkin": "Chat Skin",
+  "preferences.appearance.chatSkinDescription": "Customize the look and feel of your chat area",
+  "skins.classic.name": "Classic",
+  "skins.classic.description": "Clean and neutral",
+  "skins.midnight.name": "Midnight",
+  "skins.midnight.description": "Deep purple night sky",
+  "skins.paper.name": "Paper",
+  "skins.paper.description": "Warm and easy on the eyes",
+  "skins.sakura.name": "Sakura",
+  "skins.sakura.description": "Cherry blossom pink",
+  "skins.neon.name": "Neon",
+  "skins.neon.description": "Vibrant accents on dark"
 }

@@ -55,8 +55,18 @@
   "preferences.shortcuts.windowDescription": "选择要截图的窗口",
 
   "preferences.advanced.title": "高级",
-  "preferences.advanced.apiStatus": "API 配置",
-  "preferences.advanced.apiStatusDescription": "Gemini API 密钥通过 .env 文件中的 VITE_GEMINI_API_KEY 配置",
+  "preferences.advanced.apiKey": "Gemini API Key",
+  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyPlaceholder": "AIza...",
+  "preferences.advanced.apiSave": "Save",
+  "preferences.advanced.apiRemove": "Remove",
+  "preferences.advanced.apiConfigured": "API key configured",
+  "preferences.advanced.apiNotConfigured": "No API key configured",
+  "preferences.advanced.apiSaved": "API key saved to keychain",
+  "preferences.advanced.apiRemoved": "API key removed",
+  "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
+  "preferences.advanced.envKeyActive": "Using development key from environment",
+  "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "已启用",
   "common.disabled": "已禁用",
@@ -106,6 +116,7 @@
   "titlebar.settings": "设置",
 
   "chat.emptyState": "你想了解这张截图的什么内容？",
+  "chat.retrying": "重试中（第 {{attempt}}/2 次）...",
 
   "screenshot.decision.title": "已捕获新截图",
   "screenshot.decision.addToSession": "添加到会话",
@@ -127,5 +138,18 @@
   "toast.error.windowMinimizeFailed": "最小化窗口失败：{{message}}",
   "toast.error.windowMaximizeFailed": "切换最大化失败：{{message}}",
   "toast.error.fullscreenEnterFailed": "进入全屏失败：{{message}}",
-  "toast.error.fullscreenExitFailed": "退出全屏失败：{{message}}"
+  "toast.error.fullscreenExitFailed": "退出全屏失败：{{message}}",
+
+  "preferences.appearance.chatSkin": "聊天皮肤",
+  "preferences.appearance.chatSkinDescription": "自定义聊天区域的外观",
+  "skins.classic.name": "经典",
+  "skins.classic.description": "简洁中性",
+  "skins.midnight.name": "午夜",
+  "skins.midnight.description": "深紫色夜空",
+  "skins.paper.name": "纸张",
+  "skins.paper.description": "温暖护眼",
+  "skins.sakura.name": "樱花",
+  "skins.sakura.description": "樱花粉色",
+  "skins.neon.name": "霓虹",
+  "skins.neon.description": "暗色背景上的鲜艳强调色"
 }

@@ -1,20 +1,23 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import type { DifficultyLevel } from '@/lib/schemas'
+import type { ChatSkinId, DifficultyLevel } from '@/lib/schemas'
 import { SettingsPersistedSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 
 interface SettingsState {
   /** Current difficulty level for AI tutoring */
   difficulty: DifficultyLevel
-  /** Whether the API key has been validated (key itself is in .env) */
+  /** Whether an API key is available (keychain or environment) */
   apiKeyConfigured: boolean
   /** Number of days to keep history sessions (0 = keep forever) */
   historyRetentionDays: number
+  /** Active chat skin */
+  chatSkin: ChatSkinId
 
   setDifficulty: (level: DifficultyLevel) => void
   setApiKeyConfigured: (configured: boolean) => void
   setHistoryRetentionDays: (days: number) => void
+  setChatSkin: (skin: ChatSkinId) => void
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -24,6 +27,7 @@ export const useSettingsStore = create<SettingsState>()(
         difficulty: 'intermediate',
         apiKeyConfigured: false,
         historyRetentionDays: 30,
+        chatSkin: 'classic',
 
         setDifficulty: level =>
           set({ difficulty: level }, undefined, 'setDifficulty'),
@@ -41,6 +45,8 @@ export const useSettingsStore = create<SettingsState>()(
             undefined,
             'setHistoryRetentionDays'
           ),
+
+        setChatSkin: skin => set({ chatSkin: skin }, undefined, 'setChatSkin'),
       }),
       {
         name: 'komugi-settings',

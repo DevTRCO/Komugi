@@ -55,8 +55,18 @@
   "preferences.shortcuts.windowDescription": "कैप्चर करने के लिए एक विंडो चुनें",
 
   "preferences.advanced.title": "उन्नत",
-  "preferences.advanced.apiStatus": "API कॉन्फ़िगरेशन",
-  "preferences.advanced.apiStatusDescription": "Gemini API कुंजी आपकी .env फ़ाइल में VITE_GEMINI_API_KEY के माध्यम से कॉन्फ़िगर की गई है",
+  "preferences.advanced.apiKey": "Gemini API Key",
+  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyPlaceholder": "AIza...",
+  "preferences.advanced.apiSave": "Save",
+  "preferences.advanced.apiRemove": "Remove",
+  "preferences.advanced.apiConfigured": "API key configured",
+  "preferences.advanced.apiNotConfigured": "No API key configured",
+  "preferences.advanced.apiSaved": "API key saved to keychain",
+  "preferences.advanced.apiRemoved": "API key removed",
+  "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
+  "preferences.advanced.envKeyActive": "Using development key from environment",
+  "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "सक्षम",
   "common.disabled": "अक्षम",
@@ -106,6 +116,7 @@
   "titlebar.settings": "सेटिंग्स",
 
   "chat.emptyState": "आप इस स्क्रीनशॉट के बारे में क्या जानना चाहते हैं?",
+  "chat.retrying": "पुनः प्रयास ({{attempt}}/2)...",
 
   "screenshot.decision.title": "नया स्क्रीनशॉट कैप्चर किया गया",
   "screenshot.decision.addToSession": "सत्र में जोड़ें",
@@ -127,5 +138,18 @@
   "toast.error.windowMinimizeFailed": "विंडो छोटी करने में विफल: {{message}}",
   "toast.error.windowMaximizeFailed": "अधिकतम टॉगल करने में विफल: {{message}}",
   "toast.error.fullscreenEnterFailed": "पूर्ण स्क्रीन में प्रवेश करने में विफल: {{message}}",
-  "toast.error.fullscreenExitFailed": "पूर्ण स्क्रीन से बाहर निकलने में विफल: {{message}}"
+  "toast.error.fullscreenExitFailed": "पूर्ण स्क्रीन से बाहर निकलने में विफल: {{message}}",
+
+  "preferences.appearance.chatSkin": "चैट स्किन",
+  "preferences.appearance.chatSkinDescription": "अपने चैट क्षेत्र का रूप अनुकूलित करें",
+  "skins.classic.name": "क्लासिक",
+  "skins.classic.description": "साफ़ और तटस्थ",
+  "skins.midnight.name": "मिडनाइट",
+  "skins.midnight.description": "गहरा बैंगनी रात का आसमान",
+  "skins.paper.name": "पेपर",
+  "skins.paper.description": "गर्म और आँखों को आरामदायक",
+  "skins.sakura.name": "साकुरा",
+  "skins.sakura.description": "चेरी ब्लॉसम गुलाबी",
+  "skins.neon.name": "नियॉन",
+  "skins.neon.description": "गहरे पर जीवंत रंग"
 }

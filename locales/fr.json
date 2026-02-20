@@ -51,13 +51,18 @@
   "preferences.shortcuts.windowDescription": "Sélectionner une fenêtre à capturer",
 
   "preferences.advanced.title": "Paramètres avancés d'exemple",
-  "preferences.advanced.toggle": "Bascule avancée d'exemple",
-  "preferences.advanced.toggleDescription": "Ceci est un exemple de paramètre de bascule avancé (non persisté)",
-  "preferences.advanced.dropdown": "Paramètre de liste déroulante d'exemple",
-  "preferences.advanced.dropdownDescription": "Ceci est un exemple de paramètre de liste déroulante (non persisté)",
-  "preferences.advanced.option1": "Option 1 d'exemple",
-  "preferences.advanced.option2": "Option 2 d'exemple",
-  "preferences.advanced.option3": "Option 3 d'exemple",
+  "preferences.advanced.apiKey": "Gemini API Key",
+  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyPlaceholder": "AIza...",
+  "preferences.advanced.apiSave": "Save",
+  "preferences.advanced.apiRemove": "Remove",
+  "preferences.advanced.apiConfigured": "API key configured",
+  "preferences.advanced.apiNotConfigured": "No API key configured",
+  "preferences.advanced.apiSaved": "API key saved to keychain",
+  "preferences.advanced.apiRemoved": "API key removed",
+  "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
+  "preferences.advanced.envKeyActive": "Using development key from environment",
+  "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "Activé",
   "common.disabled": "Désactivé",
@@ -107,6 +112,7 @@
   "titlebar.settings": "Paramètres",
 
   "chat.emptyState": "Que voulez-vous savoir sur cette capture d'écran ?",
+  "chat.retrying": "Nouvelle tentative (essai {{attempt}}/2)...",
 
   "screenshot.decision.title": "Nouvelle capture d'écran",
   "screenshot.decision.addToSession": "Ajouter à la session",
@@ -128,5 +134,18 @@
   "toast.error.windowMinimizeFailed": "Échec de la réduction de la fenêtre : {{message}}",
   "toast.error.windowMaximizeFailed": "Échec du basculement de l'agrandissement : {{message}}",
   "toast.error.fullscreenEnterFailed": "Échec du passage en plein écran : {{message}}",
-  "toast.error.fullscreenExitFailed": "Échec de la sortie du plein écran : {{message}}"
+  "toast.error.fullscreenExitFailed": "Échec de la sortie du plein écran : {{message}}",
+
+  "preferences.appearance.chatSkin": "Skin du chat",
+  "preferences.appearance.chatSkinDescription": "Personnalisez l'apparence de votre zone de chat",
+  "skins.classic.name": "Classique",
+  "skins.classic.description": "Propre et neutre",
+  "skins.midnight.name": "Minuit",
+  "skins.midnight.description": "Ciel nocturne violet profond",
+  "skins.paper.name": "Papier",
+  "skins.paper.description": "Chaud et agréable pour les yeux",
+  "skins.sakura.name": "Sakura",
+  "skins.sakura.description": "Rose fleur de cerisier",
+  "skins.neon.name": "Néon",
+  "skins.neon.description": "Accents vibrants sur fond sombre"
 }

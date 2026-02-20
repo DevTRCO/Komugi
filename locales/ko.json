@@ -55,8 +55,18 @@
   "preferences.shortcuts.windowDescription": "캡처할 창을 선택",
 
   "preferences.advanced.title": "고급",
-  "preferences.advanced.apiStatus": "API 설정",
-  "preferences.advanced.apiStatusDescription": "Gemini API 키는 .env 파일의 VITE_GEMINI_API_KEY로 설정됩니다",
+  "preferences.advanced.apiKey": "Gemini API Key",
+  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyPlaceholder": "AIza...",
+  "preferences.advanced.apiSave": "Save",
+  "preferences.advanced.apiRemove": "Remove",
+  "preferences.advanced.apiConfigured": "API key configured",
+  "preferences.advanced.apiNotConfigured": "No API key configured",
+  "preferences.advanced.apiSaved": "API key saved to keychain",
+  "preferences.advanced.apiRemoved": "API key removed",
+  "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
+  "preferences.advanced.envKeyActive": "Using development key from environment",
+  "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "활성화",
   "common.disabled": "비활성화",
@@ -106,6 +116,7 @@
   "titlebar.settings": "설정",
 
   "chat.emptyState": "이 스크린샷에 대해 무엇이 궁금하세요?",
+  "chat.retrying": "재시도 중 ({{attempt}}/2회)...",
 
   "screenshot.decision.title": "새 스크린샷이 캡처되었습니다",
   "screenshot.decision.addToSession": "세션에 추가",
@@ -127,5 +138,18 @@
   "toast.error.windowMinimizeFailed": "윈도우 최소화 실패: {{message}}",
   "toast.error.windowMaximizeFailed": "최대화 전환 실패: {{message}}",
   "toast.error.fullscreenEnterFailed": "전체 화면 전환 실패: {{message}}",
-  "toast.error.fullscreenExitFailed": "전체 화면 종료 실패: {{message}}"
+  "toast.error.fullscreenExitFailed": "전체 화면 종료 실패: {{message}}",
+
+  "preferences.appearance.chatSkin": "채팅 스킨",
+  "preferences.appearance.chatSkinDescription": "채팅 영역의 외관을 사용자 정의합니다",
+  "skins.classic.name": "클래식",
+  "skins.classic.description": "깔끔하고 중립적",
+  "skins.midnight.name": "미드나잇",
+  "skins.midnight.description": "깊은 보라색 밤하늘",
+  "skins.paper.name": "페이퍼",
+  "skins.paper.description": "따뜻하고 눈에 편안한",
+  "skins.sakura.name": "사쿠라",
+  "skins.sakura.description": "벚꽃 핑크",
+  "skins.neon.name": "네온",
+  "skins.neon.description": "어두운 배경에 생생한 강조"
 }

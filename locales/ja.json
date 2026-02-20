@@ -55,8 +55,18 @@
   "preferences.shortcuts.windowDescription": "キャプチャするウィンドウを選択",
 
   "preferences.advanced.title": "詳細",
-  "preferences.advanced.apiStatus": "API 設定",
-  "preferences.advanced.apiStatusDescription": "Gemini API キーは .env ファイルの VITE_GEMINI_API_KEY で設定されています",
+  "preferences.advanced.apiKey": "Gemini API Key",
+  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyPlaceholder": "AIza...",
+  "preferences.advanced.apiSave": "Save",
+  "preferences.advanced.apiRemove": "Remove",
+  "preferences.advanced.apiConfigured": "API key configured",
+  "preferences.advanced.apiNotConfigured": "No API key configured",
+  "preferences.advanced.apiSaved": "API key saved to keychain",
+  "preferences.advanced.apiRemoved": "API key removed",
+  "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
+  "preferences.advanced.envKeyActive": "Using development key from environment",
+  "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "有効",
   "common.disabled": "無効",
@@ -106,6 +116,7 @@
   "titlebar.settings": "設定",
 
   "chat.emptyState": "このスクリーンショットについて何を知りたいですか？",
+  "chat.retrying": "リトライ中（{{attempt}}/2回目）...",
 
   "screenshot.decision.title": "新しいスクリーンショットをキャプチャしました",
   "screenshot.decision.addToSession": "セッションに追加",
@@ -127,5 +138,18 @@
   "toast.error.windowMinimizeFailed": "ウィンドウを最小化できませんでした: {{message}}",
   "toast.error.windowMaximizeFailed": "最大化の切替に失敗しました: {{message}}",
   "toast.error.fullscreenEnterFailed": "フルスクリーンにできませんでした: {{message}}",
-  "toast.error.fullscreenExitFailed": "フルスクリーンを解除できませんでした: {{message}}"
+  "toast.error.fullscreenExitFailed": "フルスクリーンを解除できませんでした: {{message}}",
+
+  "preferences.appearance.chatSkin": "チャットスキン",
+  "preferences.appearance.chatSkinDescription": "チャットエリアの見た目をカスタマイズします",
+  "skins.classic.name": "クラシック",
+  "skins.classic.description": "すっきりとしたニュートラル",
+  "skins.midnight.name": "ミッドナイト",
+  "skins.midnight.description": "深い紫の夜空",
+  "skins.paper.name": "ペーパー",
+  "skins.paper.description": "暖かく目に優しい",
+  "skins.sakura.name": "桜",
+  "skins.sakura.description": "桜色のピンク",
+  "skins.neon.name": "ネオン",
+  "skins.neon.description": "ダークに映える鮮やかなアクセント"
 }

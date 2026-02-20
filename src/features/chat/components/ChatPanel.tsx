@@ -12,6 +12,7 @@ import { PresetPills } from './PresetPills'
 import { ScreenshotDecisionBanner } from './ScreenshotDecisionBanner'
 import { AlertCircle } from 'lucide-react'
 import { useScreenshotStore } from '@/features/screenshot/stores/screenshotStore'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { PermissionGuide } from '@/features/screenshot/components/PermissionGuide'
 
 /**
@@ -25,6 +26,7 @@ export function ChatPanel() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { send, abort } = useSendMessage()
   const { editAndResend } = useEditMessage()
+  const chatSkin = useSettingsStore(state => state.chatSkin)
   const { t } = useTranslation()
 
   // Auto-scroll to bottom on new messages
@@ -42,7 +44,10 @@ export function ChatPanel() {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div
+      className="flex h-full flex-col"
+      data-skin={chatSkin === 'classic' ? undefined : chatSkin}
+    >
       <SessionTabs />
       <ScreenshotPreview onClose={handleEndSession} />
 

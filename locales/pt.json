@@ -55,8 +55,18 @@
   "preferences.shortcuts.windowDescription": "Selecionar uma janela para capturar",
 
   "preferences.advanced.title": "Avançado",
-  "preferences.advanced.apiStatus": "Configuração da API",
-  "preferences.advanced.apiStatusDescription": "A chave da API Gemini é configurada via VITE_GEMINI_API_KEY no seu arquivo .env",
+  "preferences.advanced.apiKey": "Gemini API Key",
+  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyPlaceholder": "AIza...",
+  "preferences.advanced.apiSave": "Save",
+  "preferences.advanced.apiRemove": "Remove",
+  "preferences.advanced.apiConfigured": "API key configured",
+  "preferences.advanced.apiNotConfigured": "No API key configured",
+  "preferences.advanced.apiSaved": "API key saved to keychain",
+  "preferences.advanced.apiRemoved": "API key removed",
+  "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
+  "preferences.advanced.envKeyActive": "Using development key from environment",
+  "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "Ativado",
   "common.disabled": "Desativado",
@@ -106,6 +116,7 @@
   "titlebar.settings": "Configurações",
 
   "chat.emptyState": "O que você quer saber sobre esta captura de tela?",
+  "chat.retrying": "Tentando novamente (tentativa {{attempt}}/2)...",
 
   "screenshot.decision.title": "Nova captura de tela capturada",
   "screenshot.decision.addToSession": "Adicionar à sessão",
@@ -127,5 +138,18 @@
   "toast.error.windowMinimizeFailed": "Falha ao minimizar janela: {{message}}",
   "toast.error.windowMaximizeFailed": "Falha ao alternar maximizar: {{message}}",
   "toast.error.fullscreenEnterFailed": "Falha ao entrar em tela cheia: {{message}}",
-  "toast.error.fullscreenExitFailed": "Falha ao sair da tela cheia: {{message}}"
+  "toast.error.fullscreenExitFailed": "Falha ao sair da tela cheia: {{message}}",
+
+  "preferences.appearance.chatSkin": "Skin do chat",
+  "preferences.appearance.chatSkinDescription": "Personalize a aparência da sua área de chat",
+  "skins.classic.name": "Clássico",
+  "skins.classic.description": "Limpo e neutro",
+  "skins.midnight.name": "Meia-noite",
+  "skins.midnight.description": "Céu noturno púrpura profundo",
+  "skins.paper.name": "Papel",
+  "skins.paper.description": "Quente e agradável aos olhos",
+  "skins.sakura.name": "Sakura",
+  "skins.sakura.description": "Rosa flor de cerejeira",
+  "skins.neon.name": "Neon",
+  "skins.neon.description": "Acentos vibrantes no escuro"
 }

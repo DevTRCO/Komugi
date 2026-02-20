@@ -51,13 +51,18 @@
   "preferences.shortcuts.windowDescription": "تحديد نافذة لالتقاطها",
 
   "preferences.advanced.title": "إعدادات متقدمة",
-  "preferences.advanced.toggle": "تبديل متقدم",
-  "preferences.advanced.toggleDescription": "هذا مثال على إعداد التبديل المتقدم (غير محفوظ)",
-  "preferences.advanced.dropdown": "إعداد القائمة المنسدلة",
-  "preferences.advanced.dropdownDescription": "هذا مثال على إعداد القائمة المنسدلة/الاختيار (غير محفوظ)",
-  "preferences.advanced.option1": "الخيار 1",
-  "preferences.advanced.option2": "الخيار 2",
-  "preferences.advanced.option3": "الخيار 3",
+  "preferences.advanced.apiKey": "Gemini API Key",
+  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyPlaceholder": "AIza...",
+  "preferences.advanced.apiSave": "Save",
+  "preferences.advanced.apiRemove": "Remove",
+  "preferences.advanced.apiConfigured": "API key configured",
+  "preferences.advanced.apiNotConfigured": "No API key configured",
+  "preferences.advanced.apiSaved": "API key saved to keychain",
+  "preferences.advanced.apiRemoved": "API key removed",
+  "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
+  "preferences.advanced.envKeyActive": "Using development key from environment",
+  "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "مفعّل",
   "common.disabled": "معطّل",
@@ -107,6 +112,7 @@
   "titlebar.settings": "الإعدادات",
 
   "chat.emptyState": "ماذا تريد أن تعرف عن لقطة الشاشة هذه؟",
+  "chat.retrying": "إعادة المحاولة (المحاولة {{attempt}}/2)...",
 
   "screenshot.decision.title": "تم التقاط لقطة شاشة جديدة",
   "screenshot.decision.addToSession": "إضافة إلى الجلسة",
@@ -128,5 +134,18 @@
   "toast.error.windowMinimizeFailed": "فشل تصغير النافذة: {{message}}",
   "toast.error.windowMaximizeFailed": "فشل تبديل التكبير: {{message}}",
   "toast.error.fullscreenEnterFailed": "فشل الدخول إلى ملء الشاشة: {{message}}",
-  "toast.error.fullscreenExitFailed": "فشل الخروج من ملء الشاشة: {{message}}"
+  "toast.error.fullscreenExitFailed": "فشل الخروج من ملء الشاشة: {{message}}",
+
+  "preferences.appearance.chatSkin": "مظهر الدردشة",
+  "preferences.appearance.chatSkinDescription": "تخصيص مظهر منطقة الدردشة",
+  "skins.classic.name": "كلاسيكي",
+  "skins.classic.description": "نظيف ومحايد",
+  "skins.midnight.name": "منتصف الليل",
+  "skins.midnight.description": "سماء ليلية بنفسجية عميقة",
+  "skins.paper.name": "ورقي",
+  "skins.paper.description": "دافئ ومريح للعين",
+  "skins.sakura.name": "ساكورا",
+  "skins.sakura.description": "وردي أزهار الكرز",
+  "skins.neon.name": "نيون",
+  "skins.neon.description": "ألوان نابضة على خلفية داكنة"
 }

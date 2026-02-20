@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { locale } from '@tauri-apps/plugin-os'
 import { toast } from 'sonner'
+import { Check } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -12,6 +13,9 @@ import { useTheme } from '@/hooks/use-theme'
 import { SettingsField, SettingsSection } from '../shared/SettingsComponents'
 import { usePreferences, useSavePreferences } from '@/services/preferences'
 import { availableLanguages, languageNames } from '@/i18n'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
+import { CHAT_SKINS } from '@/features/chat/config/skins'
+import type { ChatSkinId } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 
 export function AppearancePane() {
@@ -19,6 +23,8 @@ export function AppearancePane() {
   const { theme, setTheme } = useTheme()
   const { data: preferences } = usePreferences()
   const savePreferences = useSavePreferences()
+  const chatSkin = useSettingsStore(state => state.chatSkin)
+  const setChatSkin = useSettingsStore(state => state.setChatSkin)
 
   const handleThemeChange = (value: 'light' | 'dark' | 'system') => {
     // Update the theme provider immediately for instant UI feedback
@@ -119,6 +125,78 @@ export function AppearancePane() {
           </Select>
         </SettingsField>
       </SettingsSection>
+
+      <SettingsSection title={t('preferences.appearance.chatSkin')}>
+        <SettingsField
+          label={t('preferences.appearance.chatSkin')}
+          description={t('preferences.appearance.chatSkinDescription')}
+        >
+          <div className="grid grid-cols-3 gap-3">
+            {CHAT_SKINS.map(skin => (
+              <SkinCard
+                key={skin.id}
+                id={skin.id}
+                name={t(skin.nameKey)}
+                description={t(skin.descriptionKey)}
+                preview={skin.preview}
+                selected={chatSkin === skin.id}
+                onSelect={setChatSkin}
+              />
+            ))}
+          </div>
+        </SettingsField>
+      </SettingsSection>
     </div>
+  )
+}
+
+interface SkinCardProps {
+  id: ChatSkinId
+  name: string
+  description: string
+  preview: { bg: string; accent: string; text: string }
+  selected: boolean
+  onSelect: (id: ChatSkinId) => void
+}
+
+function SkinCard({
+  id,
+  name,
+  description,
+  preview,
+  selected,
+  onSelect,
+}: SkinCardProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(id)}
+      className={`relative cursor-pointer rounded-lg border p-3 text-start transition-colors ${
+        selected
+          ? 'border-primary bg-accent'
+          : 'border-border hover:border-primary/50'
+      }`}
+    >
+      {selected && (
+        <div className="absolute end-2 top-2 flex size-4 items-center justify-center rounded-full bg-primary">
+          <Check size={10} className="text-primary-foreground" />
+        </div>
+      )}
+      <div
+        className="mb-2 flex h-8 items-center gap-1.5 rounded"
+        style={{ backgroundColor: preview.bg }}
+      >
+        <div
+          className="ms-2 h-3 w-3 rounded-full"
+          style={{ backgroundColor: preview.accent }}
+        />
+        <div
+          className="h-1.5 w-8 rounded-full"
+          style={{ backgroundColor: preview.text, opacity: 0.7 }}
+        />
+      </div>
+      <p className="text-sm font-medium">{name}</p>
+      <p className="text-xs text-muted-foreground">{description}</p>
+    </button>
   )
 }

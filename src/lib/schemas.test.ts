@@ -43,12 +43,14 @@ describe('SettingsPersistedSchema', () => {
       difficulty: 'beginner',
       apiKeyConfigured: true,
       historyRetentionDays: 30,
+      chatSkin: 'classic',
     })
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.difficulty).toBe('beginner')
       expect(result.data.apiKeyConfigured).toBe(true)
       expect(result.data.historyRetentionDays).toBe(30)
+      expect(result.data.chatSkin).toBe('classic')
     }
   })
 

@@ -3,6 +3,7 @@
 @import 'tw-animate-css';
 @plugin '@tailwindcss/typography';
 @import './theme-variables.css';
+@import './features/chat/styles/chat-skins.css';
 
 @custom-variant dark (&:is(.dark *));
 

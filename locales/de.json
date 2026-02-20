@@ -64,8 +64,18 @@
   "preferences.shortcuts.windowDescription": "Ein Fenster zum Erfassen auswählen",
 
   "preferences.advanced.title": "Erweitert",
-  "preferences.advanced.apiStatus": "API-Konfiguration",
-  "preferences.advanced.apiStatusDescription": "Der Gemini-API-Schlüssel wird über VITE_GEMINI_API_KEY in deiner .env-Datei konfiguriert",
+  "preferences.advanced.apiKey": "Gemini API Key",
+  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyPlaceholder": "AIza...",
+  "preferences.advanced.apiSave": "Save",
+  "preferences.advanced.apiRemove": "Remove",
+  "preferences.advanced.apiConfigured": "API key configured",
+  "preferences.advanced.apiNotConfigured": "No API key configured",
+  "preferences.advanced.apiSaved": "API key saved to keychain",
+  "preferences.advanced.apiRemoved": "API key removed",
+  "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
+  "preferences.advanced.envKeyActive": "Using development key from environment",
+  "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "Aktiviert",
   "common.disabled": "Deaktiviert",
@@ -121,6 +131,7 @@
   "chat.editMessage": "Nachricht bearbeiten",
   "chat.editHint.save": "Enter zum Speichern",
   "chat.editHint.cancel": "Escape zum Abbrechen",
+  "chat.retrying": "Erneuter Versuch ({{attempt}}/2)...",
 
   "screenshots.title": "Deine Screenshots",
   "screenshots.emptyState": "Mache einen Screenshot, um loszulegen",
@@ -145,5 +156,18 @@
   "toast.error.windowMinimizeFailed": "Fenster konnte nicht minimiert werden: {{message}}",
   "toast.error.windowMaximizeFailed": "Maximieren konnte nicht umgeschaltet werden: {{message}}",
   "toast.error.fullscreenEnterFailed": "Vollbild konnte nicht aktiviert werden: {{message}}",
-  "toast.error.fullscreenExitFailed": "Vollbild konnte nicht beendet werden: {{message}}"
+  "toast.error.fullscreenExitFailed": "Vollbild konnte nicht beendet werden: {{message}}",
+
+  "preferences.appearance.chatSkin": "Chat-Skin",
+  "preferences.appearance.chatSkinDescription": "Passe das Aussehen deines Chat-Bereichs an",
+  "skins.classic.name": "Klassisch",
+  "skins.classic.description": "Klar und neutral",
+  "skins.midnight.name": "Mitternacht",
+  "skins.midnight.description": "Tiefer lila Nachthimmel",
+  "skins.paper.name": "Papier",
+  "skins.paper.description": "Warm und augenschonend",
+  "skins.sakura.name": "Sakura",
+  "skins.sakura.description": "Kirschblütenrosa",
+  "skins.neon.name": "Neon",
+  "skins.neon.description": "Lebhafte Akzente auf Dunkel"
 }
