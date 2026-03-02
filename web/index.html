@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Komugi — AI Tutor for Visual Learning</title>
+    <meta
+      name="description"
+      content="Komugi is a context-aware AI tutor for macOS. Take a screenshot, ask a question, get a Socratic explanation."
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Komugi — AI Tutor for Visual Learning" />
+    <meta
+      property="og:description"
+      content="Take a screenshot. Ask a question. Get a Socratic explanation. A desktop AI tutor that teaches, not solves."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="favicon.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="Komugi — AI Tutor for Visual Learning"
+    />
+    <meta
+      name="twitter:description"
+      content="Context-aware AI tutor for macOS. Screenshot → Question → Socratic explanation."
+    />
+
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              komugi: {
+                50: '#fdf8f0',
+                500: '#d4a24e',
+                600: '#b8862e',
+                900: '#3d2e14',
+              },
+            },
+          },
+        },
+      }
+    </script>
+  </head>
+  <body
+    class="bg-neutral-950 text-neutral-100 min-h-screen flex flex-col items-center justify-center px-6"
+  >
+    <main class="max-w-2xl w-full text-center space-y-10 py-20">
+      <!-- Logo + Name -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-center gap-3">
+          <img src="favicon.png" alt="Komugi" class="w-10 h-10" />
+          <h1 class="text-4xl font-bold tracking-tight">Komugi</h1>
+        </div>
+        <p class="text-lg text-neutral-400">
+          A context-aware AI tutor for macOS
+        </p>
+      </div>
+
+      <!-- Core flow -->
+      <div
+        class="flex items-center justify-center gap-3 text-sm text-neutral-500"
+      >
+        <span
+          class="bg-neutral-900 px-3 py-1.5 rounded-md border border-neutral-800"
+          >Screenshot</span
+        >
+        <span>&rarr;</span>
+        <span
+          class="bg-neutral-900 px-3 py-1.5 rounded-md border border-neutral-800"
+          >Question</span
+        >
+        <span>&rarr;</span>
+        <span
+          class="bg-neutral-900 px-3 py-1.5 rounded-md border border-neutral-800"
+          >Explanation</span
+        >
+      </div>
+
+      <!-- Features -->
+      <ul class="text-left space-y-4 text-neutral-300 max-w-md mx-auto">
+        <li class="flex gap-3">
+          <span class="text-komugi-500 mt-0.5 shrink-0">&#9679;</span>
+          <span
+            ><strong class="text-neutral-100">Socratic teaching.</strong> Komugi
+            explains concepts — it doesn't give you the answer.</span
+          >
+        </li>
+        <li class="flex gap-3">
+          <span class="text-komugi-500 mt-0.5 shrink-0">&#9679;</span>
+          <span
+            ><strong class="text-neutral-100">Visual context.</strong> Every
+            conversation starts with a screenshot. No empty chats.</span
+          >
+        </li>
+        <li class="flex gap-3">
+          <span class="text-komugi-500 mt-0.5 shrink-0">&#9679;</span>
+          <span
+            ><strong class="text-neutral-100">Runs locally.</strong> No
+            accounts, no cloud. Your API key, your data, your machine.</span
+          >
+        </li>
+        <li class="flex gap-3">
+          <span class="text-komugi-500 mt-0.5 shrink-0">&#9679;</span>
+          <span
+            ><strong class="text-neutral-100">Keyboard-first.</strong> Global
+            shortcuts to capture and ask — without leaving your workflow.</span
+          >
+        </li>
+      </ul>
+
+      <!-- Download -->
+      <div class="pt-4 space-y-3">
+        <a
+          href="https://github.com/DevTRCO/Komugi/releases/latest"
+          class="inline-flex items-center gap-2 bg-komugi-500 hover:bg-komugi-600 text-neutral-950 font-semibold rounded-full px-6 py-2.5 text-sm transition-colors"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download for macOS
+        </a>
+        <p class="text-xs text-neutral-600">
+          Requires macOS 12.3 or later. Free &amp; open source.
+        </p>
+      </div>
+    </main>
+
+    <footer class="pb-8 text-xs text-neutral-700">&copy; 2025 Tran Consulting UG</footer>
+  </body>
+</html>

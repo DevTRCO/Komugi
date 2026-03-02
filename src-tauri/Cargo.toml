@@ -1,8 +1,8 @@
 [package]
-name = "tauri-app"
+name = "komugi"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Komugi - AI-powered screenshot tutor"
+authors = ["Tran Consulting UG"]
 edition = "2021"
 rust-version = "1.82"
 
@@ -12,7 +12,7 @@ rust-version = "1.82"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "tauri_app_lib"
+name = "komugi_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -35,6 +35,7 @@ tauri-plugin-global-shortcut = "2"
 log = "0.4"
 regex = "1"
 rusqlite = { version = "0.34", features = ["bundled"] }
+keyring = { version = "3", features = ["apple-native"] }
 
 # URL fetching for context enrichment
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }

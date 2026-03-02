@@ -65,7 +65,6 @@
   "preferences.advanced.apiSaved": "API key saved to keychain",
   "preferences.advanced.apiRemoved": "API key removed",
   "preferences.advanced.apiInvalidFormat": "Invalid key format. Must start with \"AIza\" and be at least 20 characters.",
-  "preferences.advanced.envKeyActive": "Using development key from environment",
   "preferences.advanced.keychainDenied": "Keychain access denied. Check System Settings.",
 
   "common.enabled": "सक्षम",

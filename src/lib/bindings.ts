@@ -9,6 +9,53 @@
 
 export const commands = {
 /**
+ * Checks whether an API key is stored in the keychain.
+ */
+async checkApiKeyConfigured() : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("check_api_key_configured") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Saves an API key to the keychain after validating its format.
+ * Performs a read-back verification after writing (NASA Rule #5).
+ */
+async saveApiKey(key: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("save_api_key", { key }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Loads the API key from the keychain.
+ * Returns None if no key is stored (normal state, not an error).
+ */
+async loadApiKey() : Promise<Result<string | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("load_api_key") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Removes the API key from the keychain.
+ * Returns Ok if no key was stored (idempotent).
+ */
+async removeApiKey() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("remove_api_key") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Simple greeting command for demonstration purposes.
  */
 async greet(name: string) : Promise<Result<string, string>> {

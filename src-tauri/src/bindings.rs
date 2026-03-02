@@ -2,10 +2,14 @@ use tauri_specta::{collect_commands, Builder};
 
 pub fn generate_bindings() -> Builder<tauri::Wry> {
     use crate::commands::{
-        history, notifications, preferences, quick_pane, recovery, screenshot, url_fetch,
+        history, keychain, notifications, preferences, quick_pane, recovery, screenshot, url_fetch,
     };
 
     Builder::<tauri::Wry>::new().commands(collect_commands![
+        keychain::check_api_key_configured,
+        keychain::save_api_key,
+        keychain::load_api_key,
+        keychain::remove_api_key,
         preferences::greet,
         preferences::load_preferences,
         preferences::save_preferences,

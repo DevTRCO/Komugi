@@ -41,24 +41,31 @@ export function useSendMessage() {
   ): Promise<void> {
     const { finalizeStreaming, setLastError } = useChatStore.getState()
 
-    const result = await streamGeminiResponse(
-      screenshotBase64,
-      previousMessages,
-      apiMessage,
-      difficulty as DifficultyLevel,
-      chunk => {
-        useChatStore.getState().appendStreamingContent(chunk)
-      },
-      controller.signal,
-      currentScreenshot
-    )
+    try {
+      const result = await streamGeminiResponse(
+        screenshotBase64,
+        previousMessages,
+        apiMessage,
+        difficulty as DifficultyLevel,
+        chunk => {
+          useChatStore.getState().appendStreamingContent(chunk)
+        },
+        controller.signal,
+        currentScreenshot,
+        attempt => {
+          useChatStore.setState({ streamingContent: '', retryAttempt: attempt })
+        }
+      )
 
-    if (!controller.signal.aborted) {
-      finalizeStreaming()
+      if (!controller.signal.aborted) {
+        finalizeStreaming()
 
-      if (!result.complete) {
-        setLastError(getIncompleteWarning(result.finishReason))
+        if (!result.complete) {
+          setLastError(getIncompleteWarning(result.finishReason))
+        }
       }
+    } finally {
+      useChatStore.getState().setRetryAttempt(null)
     }
   }
 
@@ -189,7 +196,11 @@ export function useSendMessage() {
   function abort(): void {
     abortRef.current?.abort()
     abortRef.current = null
-    useChatStore.setState({ isGenerating: false, streamingContent: '' })
+    useChatStore.setState({
+      isGenerating: false,
+      streamingContent: '',
+      retryAttempt: null,
+    })
   }
 
   return { send, resend, abort }

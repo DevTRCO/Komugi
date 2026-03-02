@@ -1,4 +1,4 @@
-name: 'Release Tauri Template App'
+name: 'Release Komugi'
 
 on:
   push:
@@ -18,18 +18,7 @@ jobs:
   publish-tauri:
     permissions:
       contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: 'macos-latest'
-            args: '--bundles app,dmg'
-          - platform: 'windows-latest'
-            args: '--bundles msi'
-          - platform: 'ubuntu-22.04'
-            args: '--bundles appimage'
-
-    runs-on: ${{ matrix.platform }}
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -47,12 +36,6 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
       - name: Install frontend dependencies
         run: npm ci
 
@@ -62,16 +45,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           tagName: ${{ github.ref_name || inputs.version }}
-          releaseName: 'Tauri Template App ${{ github.ref_name || inputs.version }}'
+          releaseName: 'Komugi ${{ github.ref_name || inputs.version }}'
           releaseBody: |
-            ## Tauri Template App ${{ github.ref_name || inputs.version }}
+            ## Komugi ${{ github.ref_name || inputs.version }}
 
-            ### Installation Instructions
-            - **macOS**: Download the `.dmg` file and drag to Applications folder
-            - **Windows**: Download the `.msi` file and run the installer
-            - **Linux**: Download the `.AppImage` file, make it executable (`chmod +x`), and run
+            ### Installation
+            Download the `.dmg` file, open it, and drag Komugi to your Applications folder.
+
+            **Requires macOS 12.3 or later.**
 
             ### Auto-Updates
             Existing users will receive automatic update notifications.
@@ -80,4 +69,4 @@ jobs:
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: true
-          args: ${{ matrix.args }}
+          args: '--bundles app,dmg,updater'

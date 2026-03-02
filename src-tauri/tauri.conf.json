@@ -46,26 +46,28 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "publisher": "Your Name",
+    "publisher": "Tran Consulting UG",
     "category": "Education",
     "shortDescription": "AI-powered screenshot tutor",
     "longDescription": "Komugi is a context-aware AI tutor. Take a screenshot, ask a question, and get Socratic explanations that help you understand.",
-    "copyright": "Copyright © 2025 Your Name. All rights reserved.",
+    "copyright": "Copyright © 2025 Tran Consulting UG. All rights reserved.",
     "macOS": {
       "frameworks": [],
-      "minimumSystemVersion": "10.15",
-      "signingIdentity": "-",
+      "minimumSystemVersion": "12.3",
+      "signingIdentity": null,
       "providerShortName": null,
-      "entitlements": null,
+      "entitlements": "Komugi.entitlements",
       "exceptionDomain": ""
     }
   },
   "plugins": {
     "updater": {
-      "active": false,
-      "endpoints": [],
-      "dialog": false,
-      "pubkey": ""
+      "active": true,
+      "endpoints": [
+        "https://github.com/DevTRCO/Komugi/releases/latest/download/latest.json"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQzNkZCMjA1OTJEMjU3ODYKUldTR1Y5S1NCYkp2UXl6TzBCMmJCZ2F6MmxHb3Z1akt3YW12QmIrdUU5OVdVQW42UzN1U09vNzcK"
     }
   }
 }

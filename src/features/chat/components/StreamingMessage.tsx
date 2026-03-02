@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useChatStore } from '../stores/chatStore'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
@@ -6,10 +7,14 @@ import { MarkdownRenderer } from './MarkdownRenderer'
  * Only visible when isGenerating is true and there's streaming content.
  */
 export function StreamingMessage() {
+  const { t } = useTranslation()
   const streamingContent = useChatStore(state => state.streamingContent)
   const isGenerating = useChatStore(state => state.isGenerating)
+  const retryAttempt = useChatStore(state => state.retryAttempt)
 
   if (!isGenerating && !streamingContent) return null
+
+  const showRetryIndicator = retryAttempt !== null && !streamingContent
 
   return (
     <div className="px-4 py-3 bg-background">
@@ -21,6 +26,11 @@ export function StreamingMessage() {
               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:0ms]" />
               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:150ms]" />
               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:300ms]" />
+            </span>
+          )}
+          {showRetryIndicator && (
+            <span className="text-xs text-muted-foreground">
+              {t('chat.retrying', { attempt: retryAttempt })}
             </span>
           )}
         </div>

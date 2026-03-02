@@ -38,8 +38,10 @@ interface ChatState {
   streamingContent: string
   lastError: string | null
   pendingScreenshot: ScreenshotAttachment | null
+  retryAttempt: number | null
   screenshotDecisionPending: boolean
 
+  setRetryAttempt: (attempt: number | null) => void
   startSession: (screenshot: {
     imageBase64: string
     width: number
@@ -88,8 +90,12 @@ export const useChatStore = create<ChatState>()(
       isGenerating: false,
       streamingContent: '',
       lastError: null,
+      retryAttempt: null,
       pendingScreenshot: null,
       screenshotDecisionPending: false,
+
+      setRetryAttempt: attempt =>
+        set({ retryAttempt: attempt }, undefined, 'setRetryAttempt'),
 
       startSession: screenshot => {
         const newSession: ChatSession = {
