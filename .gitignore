@@ -30,3 +30,13 @@ jscpd-report
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code (internal tooling)
+.claude/
+
+# Internal docs (not for public)
+docs/nasa-report/
+docs/tasks-todo/
+docs/tasks-done/
+docs/tasks.md
+CLAUDE.local.md
