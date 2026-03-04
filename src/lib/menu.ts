@@ -131,19 +131,19 @@ function handleAbout(): void {
 
 async function handleCheckForUpdates(): Promise<void> {
   logger.info('Check for Updates menu item clicked')
+  const t = i18n.t.bind(i18n)
   try {
     const update = await check()
     if (update) {
-      notifications.info(
-        'Update Available',
-        `Version ${update.version} is available`
-      )
+      const { setPendingUpdate, setUpdateDialogOpen } = useUIStore.getState()
+      setPendingUpdate(update)
+      setUpdateDialogOpen(true)
     } else {
-      notifications.success('Up to Date', 'You are running the latest version')
+      notifications.success(t('update.upToDate'))
     }
   } catch (error) {
     logger.error('Update check failed', { error })
-    notifications.error('Update Check Failed', 'Could not check for updates')
+    notifications.error(t('update.checkFailed'))
   }
 }
 

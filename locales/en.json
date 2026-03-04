@@ -177,5 +177,18 @@
   "permissions.granted": "Granted",
   "permissions.openSettings": "Open Settings",
   "permissions.restartHint": "After enabling Screen Recording in System Settings, you need to restart Komugi for it to take effect.",
-  "permissions.restart": "Restart Komugi"
+  "permissions.restart": "Restart Komugi",
+
+  "update.available": "Update Available",
+  "update.downloading": "Downloading update...",
+  "update.ready": "Ready to Restart",
+  "update.error": "Update Failed",
+  "update.versionBadge": "v{{current}} → v{{next}}",
+  "update.installNow": "Install Update",
+  "update.restartNow": "Restart Now",
+  "update.later": "Later",
+  "update.tryAgain": "Try Again",
+  "update.dismiss": "Dismiss",
+  "update.upToDate": "You're running the latest version",
+  "update.checkFailed": "Could not check for updates"
 }

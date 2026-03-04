@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
+import type { Update } from '@tauri-apps/plugin-updater'
 
 export interface ZoomedScreenshotSource {
   sessionId: string
@@ -14,6 +15,8 @@ interface UIState {
   shortcutOverlayOpen: boolean
   lastQuickPaneEntry: string | null
   zoomedScreenshotSource: ZoomedScreenshotSource | null
+  updateDialogOpen: boolean
+  pendingUpdate: Update | null
 
   toggleLeftSidebar: () => void
   setLeftSidebarVisible: (visible: boolean) => void
@@ -27,6 +30,8 @@ interface UIState {
   setLastQuickPaneEntry: (text: string) => void
   openScreenshotZoom: (source: ZoomedScreenshotSource) => void
   closeScreenshotZoom: () => void
+  setUpdateDialogOpen: (open: boolean) => void
+  setPendingUpdate: (update: Update | null) => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -39,6 +44,8 @@ export const useUIStore = create<UIState>()(
       shortcutOverlayOpen: false,
       lastQuickPaneEntry: null,
       zoomedScreenshotSource: null,
+      updateDialogOpen: false,
+      pendingUpdate: null,
 
       toggleLeftSidebar: () =>
         set(
@@ -103,6 +110,12 @@ export const useUIStore = create<UIState>()(
 
       closeScreenshotZoom: () =>
         set({ zoomedScreenshotSource: null }, undefined, 'closeScreenshotZoom'),
+
+      setUpdateDialogOpen: open =>
+        set({ updateDialogOpen: open }, undefined, 'setUpdateDialogOpen'),
+
+      setPendingUpdate: update =>
+        set({ pendingUpdate: update }, undefined, 'setPendingUpdate'),
     }),
     {
       name: 'ui-store',
