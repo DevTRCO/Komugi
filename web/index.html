@@ -49,54 +49,35 @@
       }
     </script>
     <style>
-      /* Animated gradient orbs */
-      .orb {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(80px);
-        opacity: 0.35;
-        will-change: transform;
+      /* Animated gradient background */
+      .animated-bg {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+            ellipse 80% 60% at 20% 30%,
+            rgba(212, 162, 78, 0.15) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 60% 50% at 80% 70%,
+            rgba(167, 139, 250, 0.1) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse 50% 40% at 50% 90%,
+            rgba(139, 115, 85, 0.1) 0%,
+            transparent 50%
+          ),
+          #0a0a0a;
+        background-size: 200% 200%;
+        animation: gradient-drift 20s ease-in-out infinite;
       }
 
-      .orb-gold {
-        width: 600px;
-        height: 600px;
-        background: radial-gradient(circle, #d4a24e 0%, transparent 70%);
-        animation: float-1 20s ease-in-out infinite;
-      }
-
-      .orb-purple {
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, #a78bfa 0%, transparent 70%);
-        animation: float-2 25s ease-in-out infinite;
-        animation-delay: -5s;
-      }
-
-      .orb-brown {
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, #8b7355 0%, transparent 70%);
-        animation: float-3 22s ease-in-out infinite;
-        animation-delay: -10s;
-      }
-
-      @keyframes float-1 {
-        0%, 100% { transform: translate(-20%, -10%); }
-        33% { transform: translate(10%, -30%); }
-        66% { transform: translate(-10%, 20%); }
-      }
-
-      @keyframes float-2 {
-        0%, 100% { transform: translate(30%, 20%); }
-        33% { transform: translate(-20%, -10%); }
-        66% { transform: translate(20%, -20%); }
-      }
-
-      @keyframes float-3 {
-        0%, 100% { transform: translate(10%, -20%); }
-        33% { transform: translate(-30%, 10%); }
-        66% { transform: translate(20%, 30%); }
+      @keyframes gradient-drift {
+        0%, 100% { background-position: 0% 0%; }
+        25% { background-position: 100% 50%; }
+        50% { background-position: 50% 100%; }
+        75% { background-position: 0% 50%; }
       }
 
       /* Noise/grain overlay */
@@ -160,25 +141,21 @@
       }
     </style>
   </head>
-  <body class="bg-[#0a0a0a] text-neutral-100 min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 overflow-hidden relative grain">
-    <!-- Animated background orbs -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      <div class="orb orb-gold" style="top: -10%; left: -5%"></div>
-      <div class="orb orb-purple" style="top: 40%; right: -5%"></div>
-      <div class="orb orb-brown" style="bottom: -5%; left: 30%"></div>
-    </div>
+  <body class="bg-[#0a0a0a] text-neutral-100 min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 relative grain">
+    <!-- Animated gradient background -->
+    <div class="animated-bg" aria-hidden="true"></div>
 
     <!-- Main content -->
-    <main class="relative z-10 max-w-2xl w-full py-16 sm:py-20">
+    <main class="relative z-10 max-w-2xl w-full py-8 sm:py-10">
       <!-- Glass card -->
-      <div class="glass-card px-8 sm:px-12 py-12 sm:py-16 space-y-10">
+      <div class="glass-card px-8 sm:px-12 py-8 sm:py-10 space-y-7">
 
         <!-- Icon + Title -->
-        <div class="text-center space-y-4">
+        <div class="text-center space-y-3">
           <img
             src="favicon.png"
             alt="Komugi"
-            class="w-16 h-16 mx-auto icon-glow"
+            class="w-14 h-14 mx-auto icon-glow"
           />
           <h1 class="text-4xl sm:text-5xl font-bold tracking-tight" style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif">
             Komugi
@@ -206,7 +183,7 @@
         </div>
 
         <!-- Features -->
-        <ul class="space-y-4 text-white/70 max-w-md mx-auto text-left text-sm sm:text-base">
+        <ul class="space-y-3 text-white/70 max-w-md mx-auto text-left text-sm sm:text-base">
           <li class="flex gap-3">
             <span class="text-komugi-500 mt-0.5 shrink-0">&#9679;</span>
             <span>
@@ -234,7 +211,7 @@
         </ul>
 
         <!-- Download -->
-        <div class="text-center space-y-3 pt-2">
+        <div class="text-center space-y-2">
           <a
             href="https://github.com/DevTRCO/Komugi/releases/latest"
             class="btn-download inline-flex items-center gap-2 text-neutral-950 font-semibold rounded-full px-7 py-3 text-sm"
@@ -249,6 +226,6 @@
       </div>
     </main>
 
-    <footer class="relative z-10 pb-8 text-xs text-white/20">&copy; 2025 Tran Consulting UG</footer>
+    <footer class="relative z-10 pb-4 text-xs text-white/20">&copy; 2025 Tran Consulting UG</footer>
   </body>
 </html>
