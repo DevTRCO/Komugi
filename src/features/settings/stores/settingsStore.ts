@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger'
 interface SettingsState {
   /** Current difficulty level for AI tutoring */
   difficulty: DifficultyLevel
-  /** Whether an API key is available (keychain or environment) */
+  /** Whether an API key is stored in the system keychain */
   apiKeyConfigured: boolean
   /** Number of days to keep history sessions (0 = keep forever) */
   historyRetentionDays: number

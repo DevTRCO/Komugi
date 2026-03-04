@@ -65,7 +65,7 @@
 
   "preferences.advanced.title": "Erweitert",
   "preferences.advanced.apiKey": "Gemini API Key",
-  "preferences.advanced.apiKeyDescription": "Your API key is stored securely in the system keychain",
+  "preferences.advanced.apiKeyDescription": "Get a free key at aistudio.google.com. Stored in your system keychain.",
   "preferences.advanced.apiKeyPlaceholder": "AIza...",
   "preferences.advanced.apiSave": "Save",
   "preferences.advanced.apiRemove": "Remove",
@@ -168,5 +168,14 @@
   "skins.sakura.name": "Sakura",
   "skins.sakura.description": "Kirschblütenrosa",
   "skins.neon.name": "Neon",
-  "skins.neon.description": "Lebhafte Akzente auf Dunkel"
+  "skins.neon.description": "Lebhafte Akzente auf Dunkel",
+
+  "permissions.title": "Permissions needed",
+  "permissions.description": "Komugi needs these permissions for screenshots and global shortcuts.",
+  "permissions.screenRecording": "Screen Recording",
+  "permissions.accessibility": "Accessibility",
+  "permissions.granted": "Granted",
+  "permissions.openSettings": "Open Settings",
+  "permissions.restartHint": "After enabling Screen Recording in System Settings, you need to restart Komugi for it to take effect.",
+  "permissions.restart": "Restart Komugi"
 }
