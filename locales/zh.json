@@ -8,6 +8,7 @@
   "menu.hideOthers": "隐藏其他",
   "menu.showAll": "显示全部",
   "menu.quit": "退出 {{appName}}",
+  "menu.edit": "编辑",
   "menu.view": "视图",
   "menu.toggleLeftSidebar": "切换左侧边栏",
   "menu.toggleRightSidebar": "切换右侧边栏",
@@ -28,6 +29,15 @@
   "preferences.general.difficulty.beginnerHint": "简单语言、类比、逐步解释",
   "preferences.general.difficulty.intermediateHint": "清晰的解释并有技术深度",
   "preferences.general.difficulty.advancedHint": "简洁、专业、关注细节",
+
+  "preferences.general.learningMemory": "学习记忆",
+  "preferences.general.learningMemoryDescription": "Komugi会记住你学过的内容，以提供更好的解释。数据保存在你的设备上。",
+  "preferences.general.learningMemory.empty": "还没有学习数据。Komugi会自动从你的会话中学习。",
+  "preferences.general.learningMemory.clearAll": "清除全部",
+  "preferences.general.learningMemory.clearConfirm": "删除所有学习数据？",
+  "preferences.general.learningMemory.clearConfirmDescription": "这将删除所有会话摘要。Komugi将在没有之前会话知识的情况下重新开始。",
+  "preferences.general.learningMemory.deleteEntry": "删除条目",
+  "preferences.general.learningMemory.entryCount": "已记忆{{count}}个会话",
 
   "preferences.general.keyboardShortcuts": "键盘快捷键",
   "preferences.general.quickPaneShortcut": "快速面板快捷键",

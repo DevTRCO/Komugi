@@ -2,7 +2,8 @@ use tauri_specta::{collect_commands, Builder};
 
 pub fn generate_bindings() -> Builder<tauri::Wry> {
     use crate::commands::{
-        history, keychain, notifications, preferences, quick_pane, recovery, screenshot, url_fetch,
+        history, keychain, learning_profile, notifications, preferences, quick_pane, recovery,
+        screenshot, url_fetch,
     };
 
     Builder::<tauri::Wry>::new().commands(collect_commands![
@@ -43,6 +44,10 @@ pub fn generate_bindings() -> Builder<tauri::Wry> {
         history::history_search_sessions,
         history::history_cleanup_old_sessions,
         url_fetch::fetch_url_content,
+        learning_profile::load_learning_profile,
+        learning_profile::append_learning_profile_entry,
+        learning_profile::delete_learning_profile_entry,
+        learning_profile::clear_learning_profile,
     ])
 }
 

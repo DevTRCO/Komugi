@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Label } from '@/components/ui/label'
 import {
@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ShortcutPicker } from '../ShortcutPicker'
+import { LearningProfileList } from '../LearningProfileList'
 import { SettingsField, SettingsSection } from '../shared/SettingsComponents'
 import { usePreferences, useSavePreferences } from '@/services/preferences'
 import { commands } from '@/lib/tauri-bindings'
@@ -19,6 +20,7 @@ import type { DifficultyLevel } from '@/features/chat/stores/chatStore'
 
 export function GeneralPane() {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const difficulty = useSettingsStore(state => state.difficulty)
   const historyRetentionDays = useSettingsStore(
     state => state.historyRetentionDays
@@ -27,6 +29,32 @@ export function GeneralPane() {
   // Load preferences for keyboard shortcuts
   const { data: preferences } = usePreferences()
   const savePreferences = useSavePreferences()
+
+  // Learning profile data
+  const { data: learningProfile } = useQuery({
+    queryKey: ['learning-profile'],
+    queryFn: async () => {
+      const result = await commands.loadLearningProfile()
+      if (result.status === 'ok') return result.data
+      return { version: 1, entries: [] }
+    },
+  })
+
+  const handleDeleteProfileEntry = async (sessionId: string) => {
+    const result = await commands.deleteLearningProfileEntry(sessionId)
+    if (result.status === 'error') {
+      logger.warn('Failed to delete profile entry', { error: result.error })
+    }
+    await queryClient.invalidateQueries({ queryKey: ['learning-profile'] })
+  }
+
+  const handleClearProfile = async () => {
+    const result = await commands.clearLearningProfile()
+    if (result.status === 'error') {
+      logger.warn('Failed to clear learning profile', { error: result.error })
+    }
+    await queryClient.invalidateQueries({ queryKey: ['learning-profile'] })
+  }
 
   // Get the default shortcut from the backend
   const { data: defaultShortcut } = useQuery({
@@ -168,6 +196,19 @@ export function GeneralPane() {
               </SelectItem>
             </SelectContent>
           </Select>
+        </SettingsField>
+      </SettingsSection>
+
+      <SettingsSection title={t('preferences.general.learningMemory')}>
+        <SettingsField
+          label={t('preferences.general.learningMemory')}
+          description={t('preferences.general.learningMemoryDescription')}
+        >
+          <LearningProfileList
+            entries={learningProfile?.entries ?? []}
+            onDelete={handleDeleteProfileEntry}
+            onClearAll={handleClearProfile}
+          />
         </SettingsField>
       </SettingsSection>
 

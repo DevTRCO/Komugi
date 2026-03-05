@@ -8,6 +8,7 @@
   "menu.hideOthers": "ほかを隠す",
   "menu.showAll": "すべてを表示",
   "menu.quit": "{{appName}} を終了",
+  "menu.edit": "編集",
   "menu.view": "表示",
   "menu.toggleLeftSidebar": "左サイドバーの切替",
   "menu.toggleRightSidebar": "右サイドバーの切替",
@@ -28,6 +29,15 @@
   "preferences.general.difficulty.beginnerHint": "わかりやすい言葉、たとえ話、ステップごとの説明",
   "preferences.general.difficulty.intermediateHint": "技術的な深さを持つ明確な説明",
   "preferences.general.difficulty.advancedHint": "簡潔、専門的、ニュアンスに焦点",
+
+  "preferences.general.learningMemory": "学習メモリー",
+  "preferences.general.learningMemoryDescription": "Komugiはあなたの学習内容を記憶し、より良い説明を提供します。データはデバイスに保存されます。",
+  "preferences.general.learningMemory.empty": "学習データはまだありません。Komugiはセッションから自動的に学習します。",
+  "preferences.general.learningMemory.clearAll": "すべて消去",
+  "preferences.general.learningMemory.clearConfirm": "すべての学習データを削除しますか？",
+  "preferences.general.learningMemory.clearConfirmDescription": "すべてのセッション要約が削除されます。Komugiは以前のセッションの知識なしで最初からやり直します。",
+  "preferences.general.learningMemory.deleteEntry": "エントリーを削除",
+  "preferences.general.learningMemory.entryCount": "{{count}}セッション記憶済み",
 
   "preferences.general.keyboardShortcuts": "キーボードショートカット",
   "preferences.general.quickPaneShortcut": "クイックパネルショートカット",

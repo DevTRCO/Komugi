@@ -8,6 +8,7 @@
   "menu.hideOthers": "다른 항목 가리기",
   "menu.showAll": "모두 보기",
   "menu.quit": "{{appName}} 종료",
+  "menu.edit": "편집",
   "menu.view": "보기",
   "menu.toggleLeftSidebar": "왼쪽 사이드바 전환",
   "menu.toggleRightSidebar": "오른쪽 사이드바 전환",
@@ -28,6 +29,15 @@
   "preferences.general.difficulty.beginnerHint": "쉬운 언어, 비유, 단계별 설명",
   "preferences.general.difficulty.intermediateHint": "기술적 깊이를 갖춘 명확한 설명",
   "preferences.general.difficulty.advancedHint": "간결하고 전문적이며 뉘앙스에 집중",
+
+  "preferences.general.learningMemory": "학습 기억",
+  "preferences.general.learningMemoryDescription": "Komugi는 더 나은 설명을 위해 학습 내용을 기억합니다. 데이터는 기기에 저장됩니다.",
+  "preferences.general.learningMemory.empty": "아직 학습 데이터가 없습니다. Komugi는 세션에서 자동으로 학습합니다.",
+  "preferences.general.learningMemory.clearAll": "모두 지우기",
+  "preferences.general.learningMemory.clearConfirm": "모든 학습 데이터를 삭제하시겠습니까?",
+  "preferences.general.learningMemory.clearConfirmDescription": "모든 세션 요약이 제거됩니다. Komugi는 이전 세션에 대한 지식 없이 새로 시작합니다.",
+  "preferences.general.learningMemory.deleteEntry": "항목 삭제",
+  "preferences.general.learningMemory.entryCount": "{{count}}개 세션 기억됨",
 
   "preferences.general.keyboardShortcuts": "키보드 단축키",
   "preferences.general.quickPaneShortcut": "빠른 패널 단축키",

@@ -5,6 +5,7 @@
 
 pub mod history;
 pub mod keychain;
+pub mod learning_profile;
 pub mod notifications;
 pub mod preferences;
 pub mod quick_pane;

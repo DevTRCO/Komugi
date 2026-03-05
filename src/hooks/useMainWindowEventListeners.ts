@@ -3,8 +3,10 @@ import { listen } from '@tauri-apps/api/event'
 import { useCommandContext } from './use-command-context'
 import { useKeyboardShortcuts } from './use-keyboard-shortcuts'
 import { useScreenshotListener } from '@/features/screenshot'
+import { useClipboardPaste } from '@/features/screenshot/hooks/useClipboardPaste'
 import { useScreenshotToChat } from '@/features/chat/hooks/useScreenshotToChat'
 import { useSaveSessionToHistory } from '@/features/chat/hooks/useSaveSessionToHistory'
+import { useSessionSummary } from '@/features/ai/hooks/useSessionSummary'
 import { useUIStore } from '@/store/ui-store'
 import { logger } from '@/lib/logger'
 
@@ -22,8 +24,10 @@ export function useMainWindowEventListeners() {
 
   useKeyboardShortcuts(commandContext)
   useScreenshotListener()
+  useClipboardPaste()
   useScreenshotToChat()
   useSaveSessionToHistory()
+  useSessionSummary()
 
   // Listen for quick pane submissions (cross-window event)
   useEffect(() => {

@@ -14,6 +14,8 @@ import {
   fetchUrlContents,
   buildEnrichedMessage,
 } from '../utils/url-enrichment'
+import { formatProfileForPrompt } from '../utils/learning-profile'
+import { commands } from '@/lib/tauri-bindings'
 import { logger } from '@/lib/logger'
 
 function getIncompleteWarning(finishReason: string | null): string {
@@ -27,6 +29,18 @@ function getIncompleteWarning(finishReason: string | null): string {
   }
 }
 
+async function loadProfileSummary(): Promise<string | undefined> {
+  try {
+    const result = await commands.loadLearningProfile()
+    if (result.status === 'ok' && result.data.entries.length > 0) {
+      return formatProfileForPrompt(result.data.entries)
+    }
+  } catch {
+    logger.warn('Failed to load learning profile')
+  }
+  return undefined
+}
+
 export function useSendMessage() {
   const abortRef = useRef<AbortController | null>(null)
 
@@ -37,7 +51,8 @@ export function useSendMessage() {
     apiMessage: string,
     difficulty: string,
     controller: AbortController,
-    currentScreenshot?: ScreenshotAttachment
+    currentScreenshot?: ScreenshotAttachment,
+    profileSummary?: string
   ): Promise<void> {
     const { finalizeStreaming, setLastError } = useChatStore.getState()
 
@@ -54,7 +69,8 @@ export function useSendMessage() {
         currentScreenshot,
         attempt => {
           useChatStore.setState({ streamingContent: '', retryAttempt: attempt })
-        }
+        },
+        profileSummary
       )
 
       if (!controller.signal.aborted) {
@@ -110,13 +126,16 @@ export function useSendMessage() {
         apiMessage = buildEnrichedMessage(message, fetched)
       }
 
+      const profileSummary = await loadProfileSummary()
+
       await streamToCompletion(
         screenshotBase64,
         previousMessages,
         apiMessage,
         difficulty,
         controller,
-        currentScreenshot ?? undefined
+        currentScreenshot ?? undefined,
+        profileSummary
       )
     } catch (error) {
       if (controller.signal.aborted) {
@@ -168,13 +187,16 @@ export function useSendMessage() {
             }
           : undefined
 
+      const profileSummary = await loadProfileSummary()
+
       await streamToCompletion(
         session.screenshotBase64,
         previousMessages,
         lastUserMsg.content,
         session.difficulty,
         controller,
-        screenshotAttachment
+        screenshotAttachment,
+        profileSummary
       )
     } catch (error) {
       if (controller.signal.aborted) {

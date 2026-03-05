@@ -407,6 +407,52 @@ async fetchUrlContent(url: string) : Promise<Result<FetchedUrlContent, UrlFetchE
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Loads learning profile from disk.
+ * Returns empty profile if file missing or corrupt.
+ */
+async loadLearningProfile() : Promise<Result<LearningProfile, LearningProfileError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("load_learning_profile") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Appends a new entry to the learning profile.
+ * Skips duplicates (same session_id). Prunes to max 20 entries.
+ */
+async appendLearningProfileEntry(entry: LearningProfileEntry) : Promise<Result<null, LearningProfileError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("append_learning_profile_entry", { entry }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Deletes a single entry by session_id. No-op if not found.
+ */
+async deleteLearningProfileEntry(sessionId: string) : Promise<Result<null, LearningProfileError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_learning_profile_entry", { sessionId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Clears all learning profile data by deleting the file.
+ */
+async clearLearningProfile() : Promise<Result<null, LearningProfileError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("clear_learning_profile") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -483,6 +529,30 @@ export type HistoryError =
  */
 { type: "NotFound"; id: string }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
+/**
+ * The full learning profile stored on disk
+ */
+export type LearningProfile = { version: number; entries: LearningProfileEntry[] }
+/**
+ * A single learning profile entry summarizing one session
+ */
+export type LearningProfileEntry = { session_id: string; date: string; difficulty: string; summary: string; topics: string[] }
+/**
+ * Error types for learning profile operations
+ */
+export type LearningProfileError = 
+/**
+ * File system read/write error
+ */
+{ type: "Io"; message: string } | 
+/**
+ * JSON serialization/deserialization error
+ */
+{ type: "Parse"; message: string } | 
+/**
+ * Input validation failed
+ */
+{ type: "Validation"; message: string }
 /**
  * Error types for recovery operations (typed for frontend matching)
  */

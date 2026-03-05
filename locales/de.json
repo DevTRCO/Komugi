@@ -8,6 +8,7 @@
   "menu.hideOthers": "Andere ausblenden",
   "menu.showAll": "Alle einblenden",
   "menu.quit": "{{appName}} beenden",
+  "menu.edit": "Bearbeiten",
   "menu.view": "Darstellung",
   "menu.toggleLeftSidebar": "Linke Seitenleiste umschalten",
   "menu.toggleRightSidebar": "Rechte Seitenleiste umschalten",
@@ -37,6 +38,15 @@
   "preferences.general.historyRetention.30days": "30 Tage",
   "preferences.general.historyRetention.90days": "90 Tage",
   "preferences.general.historyRetention.forever": "Für immer behalten",
+
+  "preferences.general.learningMemory": "Lerngedächtnis",
+  "preferences.general.learningMemoryDescription": "Komugi merkt sich, was du gelernt hast, um bessere Erklärungen zu geben. Daten bleiben auf deinem Gerät.",
+  "preferences.general.learningMemory.empty": "Noch keine Lerndaten. Komugi lernt automatisch aus deinen Sitzungen.",
+  "preferences.general.learningMemory.clearAll": "Alle löschen",
+  "preferences.general.learningMemory.clearConfirm": "Alle Lerndaten löschen?",
+  "preferences.general.learningMemory.clearConfirmDescription": "Dies entfernt alle Sitzungszusammenfassungen. Komugi startet ohne Wissen über deine vorherigen Sitzungen.",
+  "preferences.general.learningMemory.deleteEntry": "Eintrag löschen",
+  "preferences.general.learningMemory.entryCount": "{{count}} Sitzungen gemerkt",
 
   "preferences.general.keyboardShortcuts": "Tastenkürzel",
   "preferences.general.quickPaneShortcut": "Schnellpanel-Tastenkürzel",

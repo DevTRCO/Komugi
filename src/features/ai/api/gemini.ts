@@ -1,22 +1,42 @@
 import { logger } from '@/lib/logger'
-import { commands } from '@/lib/tauri-bindings'
 import type {
   ChatMessage,
   DifficultyLevel,
   ScreenshotAttachment,
 } from '@/features/chat/stores/chatStore'
 import { buildSystemPrompt, buildUserPrompt } from '../config/prompts'
+import { getApiKey } from './api-key'
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
-const MODEL = 'gemini-3-flash-preview'
-const MAX_OUTPUT_TOKENS = 65_536
-const THINKING_BUDGET = 8_192
 const REQUEST_TIMEOUT_MS = 600_000
+
+type ModelTier = 'pro' | 'flash'
+
+interface ModelConfig {
+  readonly model: string
+  readonly maxOutputTokens: number
+  readonly thinkingLevel: string | null
+  readonly retryThinkingLevel: string | null
+}
+
+const MODEL_CONFIGS: Record<ModelTier, ModelConfig> = {
+  pro: {
+    model: 'gemini-3.1-pro-preview',
+    maxOutputTokens: 65_536,
+    thinkingLevel: 'medium',
+    retryThinkingLevel: 'low',
+  },
+  flash: {
+    model: 'gemini-3.1-flash-lite-preview',
+    maxOutputTokens: 65_536,
+    thinkingLevel: 'low',
+    retryThinkingLevel: null,
+  },
+} as const
 const MAX_RETRIES = 2
 const INITIAL_BACKOFF_MS = 2_000
 const MAX_BACKOFF_MS = 30_000
 const RATE_LIMIT_BACKOFF_MS = 15_000
-const RETRY_THINKING_BUDGET = 2_048
 
 interface GeminiPart {
   text?: string
@@ -46,18 +66,12 @@ export interface StreamResult {
   finishReason: string | null
 }
 
-async function loadKeyFromKeychain(): Promise<string | null> {
-  const result = await commands.loadApiKey()
-  if (result.status === 'ok') return result.data ?? null
-  logger.warn('Keychain load failed', { error: result.error })
-  return null
-}
-
-async function getApiKey(): Promise<string> {
-  const keychainKey = await loadKeyFromKeychain()
-  if (keychainKey) return keychainKey
-
-  throw new Error('No API key configured. Add one in Preferences → Advanced.')
+function selectModelTier(
+  isFirstMessage: boolean,
+  hasNewScreenshot: boolean
+): ModelTier {
+  if (isFirstMessage || hasNewScreenshot) return 'pro'
+  return 'flash'
 }
 
 function buildContents(
@@ -120,10 +134,14 @@ function buildContents(
   return contents
 }
 
-function getUserFacingError(status: number): string {
+function getUserFacingError(status: number, apiError?: string): string {
   switch (status) {
-    case 400:
-      return 'Invalid request. The message or screenshot may be too large.'
+    case 400: {
+      const detail = extractApiErrorMessage(apiError)
+      return detail
+        ? `Request failed: ${detail}`
+        : 'Invalid request. The message or screenshot may be too large.'
+    }
     case 401:
     case 403:
       return 'API key is invalid or expired. Check your key in Preferences → Advanced.'
@@ -138,6 +156,16 @@ function getUserFacingError(status: number): string {
   }
 }
 
+function extractApiErrorMessage(body?: string): string | null {
+  if (!body) return null
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: string } }
+    return parsed.error?.message ?? null
+  } catch {
+    return null
+  }
+}
+
 // --- Retry infrastructure ---
 
 interface HttpError extends Error {
@@ -145,8 +173,8 @@ interface HttpError extends Error {
   httpStatus: number
 }
 
-function createHttpError(status: number): HttpError {
-  const error = new Error(getUserFacingError(status)) as HttpError
+function createHttpError(status: number, apiError?: string): HttpError {
+  const error = new Error(getUserFacingError(status, apiError)) as HttpError
   error.httpStatus = status
   error.retryable = status === 429 || status >= 500
   return error
@@ -315,7 +343,9 @@ function processOneSseLine(line: string): SseLineResult | null {
 
 interface StreamAttemptOptions {
   url: string
+  apiKey: string
   body: Record<string, unknown>
+  modelName: string
   onChunk: (text: string) => void
   signal?: AbortSignal
 }
@@ -323,17 +353,26 @@ interface StreamAttemptOptions {
 async function singleStreamAttempt(
   options: StreamAttemptOptions
 ): Promise<StreamResult> {
-  const { url, body, onChunk, signal } = options
+  const { url, apiKey, body, modelName, onChunk, signal } = options
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   const onAbort = () => controller.abort()
   signal?.addEventListener('abort', onAbort, { once: true })
 
   try {
+    const jsonBody = JSON.stringify(body)
+    logger.info('Gemini request', {
+      payloadBytes: jsonBody.length,
+      model: modelName,
+    })
+
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: jsonBody,
       signal: controller.signal,
     })
 
@@ -343,7 +382,7 @@ async function singleStreamAttempt(
         status: response.status,
         body: errorBody,
       })
-      throw createHttpError(response.status)
+      throw createHttpError(response.status, errorBody)
     }
 
     const reader = response.body?.getReader()
@@ -362,22 +401,46 @@ async function singleStreamAttempt(
 
 interface RetryOptions {
   url: string
+  apiKey: string
   contents: GeminiContent[]
   difficulty: DifficultyLevel
+  config: ModelConfig
   onChunk: (text: string) => void
   onRetry?: (attempt: number) => void
   signal?: AbortSignal
+  profileSummary?: string
 }
 
 async function executeWithRetry(options: RetryOptions): Promise<StreamResult> {
-  const { url, contents, difficulty, onChunk, onRetry, signal } = options
+  const {
+    url,
+    apiKey,
+    contents,
+    difficulty,
+    config,
+    onChunk,
+    onRetry,
+    signal,
+    profileSummary,
+  } = options
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const thinkingBudget =
-        attempt === 0 ? THINKING_BUDGET : RETRY_THINKING_BUDGET
-      const body = buildRequestBody(contents, difficulty, thinkingBudget)
-      return await singleStreamAttempt({ url, body, onChunk, signal })
+      const body = buildRequestBody(
+        contents,
+        difficulty,
+        config,
+        attempt > 0,
+        profileSummary
+      )
+      return await singleStreamAttempt({
+        url,
+        apiKey,
+        body,
+        modelName: config.model,
+        onChunk,
+        signal,
+      })
     } catch (error) {
       const isLastAttempt = attempt === MAX_RETRIES
       if (isLastAttempt || !isRetryableError(error)) throw error
@@ -399,16 +462,27 @@ async function executeWithRetry(options: RetryOptions): Promise<StreamResult> {
 function buildRequestBody(
   contents: GeminiContent[],
   difficulty: DifficultyLevel,
-  thinkingBudget: number = THINKING_BUDGET
+  config: ModelConfig,
+  isRetry: boolean,
+  profileSummary?: string
 ): Record<string, unknown> {
+  const thinkingLevel = isRetry
+    ? config.retryThinkingLevel
+    : config.thinkingLevel
+
+  const generationConfig: Record<string, unknown> = {
+    maxOutputTokens: config.maxOutputTokens,
+  }
+  if (thinkingLevel !== null) {
+    generationConfig.thinkingConfig = { thinkingLevel }
+  }
+
   return {
-    system_instruction: { parts: [{ text: buildSystemPrompt(difficulty) }] },
-    contents,
-    generationConfig: {
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      temperature: 0.7,
-      thinkingConfig: { thinkingBudget },
+    system_instruction: {
+      parts: [{ text: buildSystemPrompt(difficulty, profileSummary) }],
     },
+    contents,
+    generationConfig,
     safetySettings: SAFETY_SETTINGS,
   }
 }
@@ -421,7 +495,8 @@ export async function streamGeminiResponse(
   onChunk: (text: string) => void,
   signal?: AbortSignal,
   currentMessageScreenshot?: ScreenshotAttachment,
-  onRetry?: (attempt: number) => void
+  onRetry?: (attempt: number) => void,
+  profileSummary?: string
 ): Promise<StreamResult> {
   const apiKey = await getApiKey()
   const contents = buildContents(
@@ -431,14 +506,27 @@ export async function streamGeminiResponse(
     currentMessageScreenshot
   )
 
-  const url = `${GEMINI_API_BASE}/models/${MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`
+  const isFirstMessage = !messages.some(m => m.role === 'user')
+  const hasNewScreenshot = !!currentMessageScreenshot
+  const tier = selectModelTier(isFirstMessage, hasNewScreenshot)
+  const config = MODEL_CONFIGS[tier]
+
+  logger.info('Model selected', { tier, model: config.model })
+
+  const url = `${GEMINI_API_BASE}/models/${config.model}:streamGenerateContent?alt=sse`
 
   return executeWithRetry({
     url,
+    apiKey,
     contents,
     difficulty,
+    config,
     onChunk,
     onRetry,
     signal,
+    profileSummary,
   })
 }
+
+export { selectModelTier, buildRequestBody, MODEL_CONFIGS }
+export type { ModelTier, ModelConfig }

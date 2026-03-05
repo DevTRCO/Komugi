@@ -8,6 +8,7 @@
   "menu.hideOthers": "إخفاء الآخرين",
   "menu.showAll": "إظهار الكل",
   "menu.quit": "إنهاء {{appName}}",
+  "menu.edit": "تحرير",
   "menu.view": "عرض",
   "menu.toggleLeftSidebar": "تبديل الشريط الجانبي الأيسر",
   "menu.toggleRightSidebar": "تبديل الشريط الجانبي الأيمن",
@@ -18,6 +19,15 @@
   "preferences.appearance": "المظهر",
   "preferences.shortcuts": "الاختصارات",
   "preferences.advanced": "متقدم",
+
+  "preferences.general.learningMemory": "ذاكرة التعلم",
+  "preferences.general.learningMemoryDescription": "يتذكر Komugi ما درسته لتقديم شروحات أفضل. تبقى البيانات على جهازك.",
+  "preferences.general.learningMemory.empty": "لا توجد بيانات تعلم بعد. يتعلم Komugi من جلساتك تلقائياً.",
+  "preferences.general.learningMemory.clearAll": "مسح الكل",
+  "preferences.general.learningMemory.clearConfirm": "حذف جميع بيانات التعلم؟",
+  "preferences.general.learningMemory.clearConfirmDescription": "سيؤدي هذا إلى إزالة جميع ملخصات الجلسات. سيبدأ Komugi من جديد بدون معرفة بجلساتك السابقة.",
+  "preferences.general.learningMemory.deleteEntry": "حذف الإدخال",
+  "preferences.general.learningMemory.entryCount": "{{count}} جلسات محفوظة",
 
   "preferences.general.keyboardShortcuts": "اختصارات لوحة المفاتيح",
   "preferences.general.quickPaneShortcut": "اختصار اللوحة السريعة",

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
-interface ScreenshotData {
+export interface ScreenshotData {
   imageBase64: string
   width: number
   height: number

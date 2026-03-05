@@ -8,6 +8,7 @@
   "menu.hideOthers": "अन्य छुपाएँ",
   "menu.showAll": "सभी दिखाएँ",
   "menu.quit": "{{appName}} बंद करें",
+  "menu.edit": "संपादित करें",
   "menu.view": "दृश्य",
   "menu.toggleLeftSidebar": "बाईं साइडबार टॉगल करें",
   "menu.toggleRightSidebar": "दाईं साइडबार टॉगल करें",
@@ -28,6 +29,15 @@
   "preferences.general.difficulty.beginnerHint": "सरल भाषा, उपमाएँ, चरण-दर-चरण व्याख्या",
   "preferences.general.difficulty.intermediateHint": "तकनीकी गहराई के साथ स्पष्ट व्याख्या",
   "preferences.general.difficulty.advancedHint": "संक्षिप्त, तकनीकी, बारीकियों पर केंद्रित",
+
+  "preferences.general.learningMemory": "लर्निंग मेमोरी",
+  "preferences.general.learningMemoryDescription": "Komugi याद रखता है कि आपने क्या पढ़ा है ताकि बेहतर व्याख्या दे सके। डेटा आपके डिवाइस पर रहता है।",
+  "preferences.general.learningMemory.empty": "अभी तक कोई लर्निंग डेटा नहीं है। Komugi आपके सेशन से स्वचालित रूप से सीखता है।",
+  "preferences.general.learningMemory.clearAll": "सब साफ़ करें",
+  "preferences.general.learningMemory.clearConfirm": "सभी लर्निंग डेटा हटाएं?",
+  "preferences.general.learningMemory.clearConfirmDescription": "यह सभी सेशन सारांश हटा देगा। Komugi आपके पिछले सेशन के ज्ञान के बिना नए सिरे से शुरू करेगा।",
+  "preferences.general.learningMemory.deleteEntry": "प्रविष्टि हटाएं",
+  "preferences.general.learningMemory.entryCount": "{{count}} सेशन याद किए गए",
 
   "preferences.general.keyboardShortcuts": "कीबोर्ड शॉर्टकट",
   "preferences.general.quickPaneShortcut": "क्विक पैन शॉर्टकट",

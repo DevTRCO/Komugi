@@ -511,10 +511,46 @@ fn open_selection_overlay(
     use tauri::webview::WebviewWindowBuilder;
     use tauri::WebviewUrl;
 
-    let scale = monitor.scale_factor;
-
     // Close existing overlay if any
     close_selection_overlay(app);
+
+    // Use Tauri's own monitor API so logical coordinates are consistent with
+    // Tauri's window system (xcap dimensions can differ on scaled resolutions).
+    let (logical_x, logical_y, logical_w, logical_h, scale) =
+        match find_tauri_monitor_at_cursor(app) {
+            Some((m, cursor)) => {
+                let s = m.scale_factor();
+                let pos = m.position();
+                let size = m.size();
+                log::debug!(
+                    "Tauri monitor: {}x{} at ({},{}) scale={s} cursor=({},{})",
+                    size.width,
+                    size.height,
+                    pos.x,
+                    pos.y,
+                    cursor.x,
+                    cursor.y,
+                );
+                (
+                    pos.x as f64 / s,
+                    pos.y as f64 / s,
+                    size.width as f64 / s,
+                    size.height as f64 / s,
+                    monitor.scale_factor,
+                )
+            }
+            None => {
+                // Fallback: derive from xcap MonitorInfo
+                let s = monitor.scale_factor;
+                (
+                    monitor.x as f64 / s,
+                    monitor.y as f64 / s,
+                    monitor.width as f64 / s,
+                    monitor.height as f64 / s,
+                    s,
+                )
+            }
+        };
 
     // Pass scale factor and mode as URL query params so the frontend knows
     // the captured monitor's scale and which selection mode to render.
@@ -522,8 +558,8 @@ fn open_selection_overlay(
 
     WebviewWindowBuilder::new(app, AREA_SELECTION_LABEL, WebviewUrl::App(url_path.into()))
         .title("")
-        .position(monitor.x as f64 / scale, monitor.y as f64 / scale)
-        .inner_size(monitor.width as f64 / scale, monitor.height as f64 / scale)
+        .position(logical_x, logical_y)
+        .inner_size(logical_w, logical_h)
         .always_on_top(true)
         .decorations(false)
         .transparent(true)
@@ -535,12 +571,24 @@ fn open_selection_overlay(
             message: format!("Failed to create selection overlay: {e}"),
         })?;
 
-    log::info!(
-        "Selection overlay opened on monitor at ({}, {})",
-        monitor.x,
-        monitor.y
-    );
+    log::info!("Selection overlay opened: {logical_w}x{logical_h} at ({logical_x}, {logical_y})");
     Ok(())
+}
+
+/// Find the Tauri monitor containing the cursor. Returns (Monitor, cursor_position).
+fn find_tauri_monitor_at_cursor(
+    app: &AppHandle,
+) -> Option<(tauri::Monitor, tauri::PhysicalPosition<f64>)> {
+    let cursor = app.cursor_position().ok()?;
+    let monitors = app.available_monitors().ok()?;
+    let monitor = monitors.into_iter().find(|m| {
+        let pos = m.position();
+        let size = m.size();
+        let (x, y) = (pos.x as f64, pos.y as f64);
+        let (w, h) = (size.width as f64, size.height as f64);
+        cursor.x >= x && cursor.x < x + w && cursor.y >= y && cursor.y < y + h
+    })?;
+    Some((monitor, cursor))
 }
 
 fn close_selection_overlay(app: &AppHandle) {

@@ -50,6 +50,18 @@ function CodeBlock({ children }: { children: React.ReactNode }) {
   )
 }
 
+function sanitizeUri(uri: string): string {
+  const trimmed = uri.trim().toLowerCase()
+  if (
+    trimmed.startsWith('javascript:') ||
+    trimmed.startsWith('vbscript:') ||
+    trimmed.startsWith('data:text/html')
+  ) {
+    return ''
+  }
+  return uri
+}
+
 const markdownComponents: Partial<Components> = {
   pre({ children }) {
     return <CodeBlock>{children}</CodeBlock>
@@ -74,6 +86,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeHighlight, rehypeKatex]}
+        urlTransform={sanitizeUri}
         components={markdownComponents}
       >
         {content}

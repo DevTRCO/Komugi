@@ -9,13 +9,13 @@ Es gibt keinen leeren Chat. Komugi existiert nur MIT visuellem Kontext.
 
 **Core-Flow:** User macht Screenshot → Mini-Chat oeffnet sich → User stellt Frage → Komugi erklaert.
 
-Ohne Screenshot keine Conversation. Sokratischer Ansatz: Erklaeren, nicht Loesungen geben.
+Ohne Screenshot keine Conversation. Komugi gibt die Loesung UND erklaert sie in voller Tiefe — was, warum, und welches Vorwissen noetig ist um es zu verstehen.
 
 ## Design-Philosophie
 
 - **Tool, kein Entertainer.** Denke Raycast, nicht Clippy.
 - **Jeder Klick muss einen Grund haben.** Kein UI-Element das nur "nett" ist.
-- **AI-Output ist kurz, praezise, direkt zum Punkt.** Das Gegenteil von typischem AI-Gelaber.
+- **AI-Output ist strukturiert, tiefgehend, direkt zum Punkt.** Loesung geben + in voller Tiefe erklaeren. Kein Filler, aber auch nichts weglassen.
 - **Jede Nachricht ist kopierbar.** Der Output soll direkt verwendbar sein.
 
 ## Tech Stack
@@ -25,15 +25,18 @@ Ohne Screenshot keine Conversation. Sokratischer Ansatz: Erklaeren, nicht Loesun
 | Desktop          | Tauri 2.0 (Rust + WebView)                                           |
 | Frontend         | React 19, TypeScript, Tailwind CSS v4, Zustand v5, TanStack Query v5 |
 | UI               | shadcn/ui v4, Lucide React                                           |
-| AI Vision + Text | Google Gemini 3 Flash (Bilderkennung + Erklaerungen)                 |
+| AI Vision + Text | Google Gemini 3.1 Pro + Flash Lite (BYOK, Model Routing)             |
 | Lokale DB        | SQLite (Tauri Plugin) fuer Lern-History                              |
 | Quality          | ESLint, Prettier, ast-grep, knip, jscpd, clippy                      |
 
-**Kein Backend, kein Auth, kein Payment – alles laeuft lokal.**
+**Open Source, Bring Your Own Key (BYOK). Kein Backend, kein Auth, kein Payment – alles laeuft lokal.**
 
 ## Architektur
 
-- API Key liegt in `.env` als `GEMINI_API_KEY`
+- Open Source Projekt – User bringen ihren eigenen Gemini API Key mit (BYOK)
+- API Key wird im macOS Keychain gespeichert (nie in `.env`, Frontend-State oder localStorage)
+- API Key wird als HTTP Header (`x-goog-api-key`) gesendet, nie als URL Query Parameter
+- Model Routing: Pro fuer erste Nachricht/neue Screenshots, Flash Lite fuer Follow-ups
 - AI-Calls gehen direkt vom Client an die Gemini API (nur lokale Nutzung)
 - Kein leerer Chat-Zustand. Screenshot ist Pflicht fuer jede neue Conversation.
 - Mini-Chat erscheint erst NACH dem Screenshot.
@@ -62,10 +65,14 @@ src/features/
     stores/
 
 src-tauri/src/commands/
-  screenshot.rs      # Screenshot-Capture via xcap/ScreenCaptureKit
+  screenshot.rs      # Screenshot-Capture via xcap
   history.rs         # SQLite CRUD fuer Sessions + Messages
-  quick_pane.rs      # Window Lifecycle (existiert bereits)
-  preferences.rs     # Settings Persistence (existiert bereits)
+  quick_pane.rs      # Window Lifecycle
+  preferences.rs     # Settings Persistence
+  keychain.rs        # API Key Storage (macOS Keychain)
+  url_fetch.rs       # URL Content Fetching (SSRF-protected)
+  recovery.rs        # Emergency Data Recovery
+  notifications.rs   # Native macOS Notifications
 ```
 
 ### Datenfluss
@@ -309,14 +316,13 @@ Folgende Bereiche erfordern besondere Aufmerksamkeit:
 
 - macOS Screen Recording Permission Handling
 - Base64-Encoding grosser Screenshots (Memory)
-- ScreenCaptureKit Thread Safety
+- xcap Library Thread Safety
 
 ### Gemini API Integration
 
-- API Key Exposure (nur lokal, aber trotzdem schuetzen)
+- API Key Exposure schuetzen (Keychain + HTTP Header, nie URL Query Param)
 - Prompt Injection via Screenshot-Content
 - Streaming Response Error Handling
-- Rate Limiting / Kosten-Schutz (max 15 Messages/Session)
 - Timeout Handling bei langsamen Responses
 
 ### Multi-Window Communication

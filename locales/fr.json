@@ -8,6 +8,7 @@
   "menu.hideOthers": "Masquer les autres",
   "menu.showAll": "Tout afficher",
   "menu.quit": "Quitter {{appName}}",
+  "menu.edit": "Édition",
   "menu.view": "Affichage",
   "menu.toggleLeftSidebar": "Afficher/Masquer la barre latérale gauche",
   "menu.toggleRightSidebar": "Afficher/Masquer la barre latérale droite",
@@ -18,6 +19,15 @@
   "preferences.appearance": "Apparence",
   "preferences.shortcuts": "Raccourcis",
   "preferences.advanced": "Avancé",
+
+  "preferences.general.learningMemory": "Mémoire d'apprentissage",
+  "preferences.general.learningMemoryDescription": "Komugi se souvient de ce que vous avez étudié pour donner de meilleures explications. Les données restent sur votre appareil.",
+  "preferences.general.learningMemory.empty": "Pas encore de données d'apprentissage. Komugi apprend automatiquement de vos sessions.",
+  "preferences.general.learningMemory.clearAll": "Tout effacer",
+  "preferences.general.learningMemory.clearConfirm": "Supprimer toutes les données d'apprentissage ?",
+  "preferences.general.learningMemory.clearConfirmDescription": "Cela supprimera tous les résumés de session. Komugi repartira sans connaissance de vos sessions précédentes.",
+  "preferences.general.learningMemory.deleteEntry": "Supprimer l'entrée",
+  "preferences.general.learningMemory.entryCount": "{{count}} sessions mémorisées",
 
   "preferences.general.keyboardShortcuts": "Raccourcis clavier",
   "preferences.general.quickPaneShortcut": "Raccourci du panneau rapide",

@@ -203,6 +203,63 @@ pub struct StoredMessage {
 }
 
 // ============================================================================
+// Learning Profile Types
+// ============================================================================
+
+/// Error types for learning profile operations
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[serde(tag = "type")]
+pub enum LearningProfileError {
+    /// File system read/write error
+    Io { message: String },
+    /// JSON serialization/deserialization error
+    Parse { message: String },
+    /// Input validation failed
+    Validation { message: String },
+}
+
+impl std::fmt::Display for LearningProfileError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LearningProfileError::Io { message } => write!(f, "IO error: {message}"),
+            LearningProfileError::Parse { message } => write!(f, "Parse error: {message}"),
+            LearningProfileError::Validation { message } => {
+                write!(f, "Validation error: {message}")
+            }
+        }
+    }
+}
+
+/// A single learning profile entry summarizing one session
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct LearningProfileEntry {
+    pub session_id: String,
+    pub date: String,
+    pub difficulty: String,
+    pub summary: String,
+    pub topics: Vec<String>,
+}
+
+/// The full learning profile stored on disk
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct LearningProfile {
+    pub version: u32,
+    pub entries: Vec<LearningProfileEntry>,
+}
+
+impl Default for LearningProfile {
+    fn default() -> Self {
+        Self {
+            version: 1,
+            entries: Vec::new(),
+        }
+    }
+}
+
+/// Maximum number of entries kept in the profile
+pub const MAX_PROFILE_ENTRIES: usize = 20;
+
+// ============================================================================
 // Validation Functions
 // ============================================================================
 

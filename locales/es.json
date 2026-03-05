@@ -8,6 +8,7 @@
   "menu.hideOthers": "Ocultar otros",
   "menu.showAll": "Mostrar todo",
   "menu.quit": "Salir de {{appName}}",
+  "menu.edit": "Editar",
   "menu.view": "Vista",
   "menu.toggleLeftSidebar": "Alternar barra lateral izquierda",
   "menu.toggleRightSidebar": "Alternar barra lateral derecha",
@@ -28,6 +29,15 @@
   "preferences.general.difficulty.beginnerHint": "Lenguaje simple, analogías, explicaciones paso a paso",
   "preferences.general.difficulty.intermediateHint": "Explicaciones claras con profundidad técnica",
   "preferences.general.difficulty.advancedHint": "Conciso, técnico, enfocado en matices",
+
+  "preferences.general.learningMemory": "Memoria de aprendizaje",
+  "preferences.general.learningMemoryDescription": "Komugi recuerda lo que estudiaste para dar mejores explicaciones. Los datos permanecen en tu dispositivo.",
+  "preferences.general.learningMemory.empty": "Aún no hay datos de aprendizaje. Komugi aprende de tus sesiones automáticamente.",
+  "preferences.general.learningMemory.clearAll": "Borrar todo",
+  "preferences.general.learningMemory.clearConfirm": "¿Eliminar todos los datos de aprendizaje?",
+  "preferences.general.learningMemory.clearConfirmDescription": "Esto eliminará todos los resúmenes de sesión. Komugi comenzará de nuevo sin conocimiento de tus sesiones anteriores.",
+  "preferences.general.learningMemory.deleteEntry": "Eliminar entrada",
+  "preferences.general.learningMemory.entryCount": "{{count}} sesiones recordadas",
 
   "preferences.general.keyboardShortcuts": "Atajos de teclado",
   "preferences.general.quickPaneShortcut": "Atajo del panel rápido",
