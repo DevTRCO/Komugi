@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { getVersion } from '@tauri-apps/api/app'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Label } from '@/components/ui/label'
@@ -55,6 +56,13 @@ export function GeneralPane() {
     }
     await queryClient.invalidateQueries({ queryKey: ['learning-profile'] })
   }
+
+  // App version
+  const { data: appVersion } = useQuery({
+    queryKey: ['app-version'],
+    queryFn: () => getVersion(),
+    staleTime: Infinity,
+  })
 
   // Get the default shortcut from the backend
   const { data: defaultShortcut } = useQuery({
@@ -225,6 +233,12 @@ export function GeneralPane() {
           />
         </SettingsField>
       </SettingsSection>
+
+      {appVersion && (
+        <p className="text-center text-xs text-muted-foreground">
+          Komugi v{appVersion}
+        </p>
+      )}
     </div>
   )
 }
