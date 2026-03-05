@@ -159,6 +159,37 @@ fn maybe_resize(image: &image::RgbaImage) -> std::borrow::Cow<'_, image::RgbaIma
     std::borrow::Cow::Owned(resized)
 }
 
+/// Checks if a captured image is mostly black (< 1% non-black pixels).
+/// macOS returns a black image when screen recording permission needs a restart.
+fn is_mostly_black(image: &image::RgbaImage) -> bool {
+    let total_pixels = (image.width() as u64) * (image.height() as u64);
+    if total_pixels == 0 {
+        return true;
+    }
+
+    // Sample every 16th pixel for speed (checking ~0.4% of pixels on a 4K image)
+    let mut non_black = 0u64;
+    let threshold = total_pixels / 100; // 1% threshold
+
+    for (i, pixel) in image.pixels().enumerate() {
+        if i % 16 != 0 {
+            continue;
+        }
+        // Pixel is non-black if any RGB channel > 10 (allowing for compression artifacts)
+        if pixel[0] > 10 || pixel[1] > 10 || pixel[2] > 10 {
+            non_black += 16; // Estimate for skipped pixels
+            if non_black > threshold {
+                return false;
+            }
+        }
+    }
+
+    log::warn!(
+        "Captured image appears blank ({non_black}/{total_pixels} non-black pixels)"
+    );
+    true
+}
+
 /// Encodes an RgbaImage to base64 PNG and wraps it in a ScreenshotResult.
 /// Automatically resizes to max 1568px longest edge for optimal Gemini API usage and storage.
 fn encode_image_to_base64(image: &image::RgbaImage) -> Result<ScreenshotResult, ScreenshotError> {
@@ -273,6 +304,14 @@ fn capture_monitor_at_cursor(
         .map_err(|e| ScreenshotError::CaptureFailed {
             message: format!("Screen capture failed: {e}"),
         })?;
+
+    // Detect black/blank captures — macOS returns a black image when screen
+    // recording permission is granted but the app hasn't been restarted yet.
+    if is_mostly_black(&image) {
+        return Err(ScreenshotError::PermissionDenied {
+            message: "Screen appears blank. Please toggle Screen Recording permission OFF and ON in System Settings → Privacy & Security → Screen Recording, then restart Komugi.".to_string(),
+        });
+    }
 
     Ok((image, info))
 }

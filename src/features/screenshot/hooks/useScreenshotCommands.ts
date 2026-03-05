@@ -63,7 +63,7 @@ export async function startAreaSelection(): Promise<void> {
 
     if (result.status === 'error') {
       logger.error('Area selection failed to start', { error: result.error })
-      setLastError('Failed to start area selection')
+      setLastError(getScreenshotErrorMessage(result.error))
     }
     // isCapturing stays true until the selection is completed or cancelled
   } catch (error) {
@@ -85,7 +85,7 @@ export async function startWindowSelection(): Promise<void> {
 
     if (result.status === 'error') {
       logger.error('Window selection failed to start', { error: result.error })
-      setLastError('Failed to start window selection')
+      setLastError(getScreenshotErrorMessage(result.error))
     }
     // isCapturing stays true until the selection is completed or cancelled
   } catch (error) {
